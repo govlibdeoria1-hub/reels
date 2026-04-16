@@ -1,8 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Current Affairs Reels</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      font-family: sans-serif;
+    }
+
+    .container {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+    }
+
+    .reel {
+      height: 100vh;
+      position: relative;
+      scroll-snap-align: start;
+    }
+
+    .reel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 15px;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="app" class="container"></div>
+
 <script type="module">
 
+// ✅ Firebase Imports (Correct)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// ✅ आपका Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
   authDomain: "reels-f0d24.firebaseapp.com",
@@ -17,7 +67,9 @@ const db = getFirestore(app);
 
 const appDiv = document.getElementById("app");
 
+// 🔥 Real-time data load
 onSnapshot(collection(db, "reels"), (snapshot) => {
+
   appDiv.innerHTML = "";
 
   snapshot.forEach((doc) => {
@@ -36,6 +88,10 @@ onSnapshot(collection(db, "reels"), (snapshot) => {
 
     appDiv.appendChild(reel);
   });
+
 });
 
 </script>
+
+</body>
+</html>
