@@ -1,0 +1,41 @@
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
+  authDomain: "reels-f0d24.firebaseapp.com",
+  projectId: "reels-f0d24",
+  storageBucket: "reels-f0d24.appspot.com",
+  messagingSenderId: "658150381663",
+  appId: "1:658150381663:web:21f4e37a3163ea0f8f23ea"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const appDiv = document.getElementById("app");
+
+onSnapshot(collection(db, "reels"), (snapshot) => {
+  appDiv.innerHTML = "";
+
+  snapshot.forEach((doc) => {
+    const item = doc.data();
+
+    const reel = document.createElement("div");
+    reel.className = "reel";
+
+    reel.innerHTML = `
+      <img src="${item.image}" />
+      <div class="overlay">
+        <h2>${item.title}</h2>
+        <p>${item.category}</p>
+      </div>
+    `;
+
+    appDiv.appendChild(reel);
+  });
+});
+
+</script>
