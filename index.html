@@ -33,7 +33,6 @@
       border-radius: 20px;
       background: rgba(255,255,255,0.05);
       backdrop-filter: blur(20px);
-      box-shadow: 0 0 30px rgba(0,0,0,0.6);
       text-align: center;
       color: white;
     }
@@ -55,12 +54,6 @@
       background: linear-gradient(90deg,#7c3aed,#ec4899);
       border: none;
       color: white;
-      font-weight: bold;
-      transition: 0.2s;
-    }
-
-    .login-box button:active {
-      transform: scale(0.95);
     }
 
     /* REELS */
@@ -83,7 +76,6 @@
       filter: brightness(0.9);
     }
 
-    /* GRADIENT */
     .gradient {
       position: absolute;
       bottom: 0;
@@ -92,26 +84,13 @@
       background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
     }
 
-    /* TEXT */
     .info {
       position: absolute;
       bottom: 80px;
       left: 15px;
       color: white;
-      max-width: 70%;
     }
 
-    .info h3 {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .info p {
-      font-size: 13px;
-      color: #ccc;
-    }
-
-    /* ACTION BUTTONS */
     .actions {
       position: absolute;
       right: 10px;
@@ -119,25 +98,16 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
-      align-items: center;
       color: white;
-      z-index: 2;
     }
 
     .action-btn {
       background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(10px);
       padding: 12px;
       border-radius: 50%;
-      font-size: 20px;
-      transition: 0.2s;
     }
 
-    .action-btn:active {
-      transform: scale(0.85);
-    }
-
-    /* MENU */
+    /* 🔥 MODERN MENU */
     .hamburger {
       position: fixed;
       top: 15px;
@@ -149,26 +119,52 @@
 
     .menu {
       position: fixed;
-      left: -260px;
       top: 0;
-      width: 260px;
+      left: -280px;
+      width: 280px;
       height: 100%;
-      background: rgba(20,20,20,0.9);
+      background: rgba(20,20,20,0.6);
       backdrop-filter: blur(20px);
       padding: 20px;
-      transition: 0.3s;
+      transition: 0.35s;
       z-index: 9998;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
-    .menu.open { left: 0; }
+    .menu.open {
+      left: 0;
+    }
 
-    .menu button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.05);
+    .menu-header {
+      font-size: 22px;
       color: white;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+      border-radius: 12px;
+      color: #ddd;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .menu-item.active {
+      background: linear-gradient(90deg,#7c3aed,#ec4899);
+      color: white;
+    }
+
+    .menu-footer {
+      font-size: 13px;
+      color: #aaa;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 10px;
     }
 
   </style>
@@ -186,12 +182,20 @@
 </div>
 
 <!-- MENU -->
-<div class="hamburger" onclick="menu.classList.toggle('open')">☰</div>
+<div class="hamburger" onclick="toggleMenu()">☰</div>
 
 <div id="menu" class="menu">
-  <button onclick="loadHome()">Home</button>
-  <button onclick="loadLiked()">Liked</button>
-  <button onclick="loadSaved()">Saved</button>
+  <div>
+    <div class="menu-header">Reels Pro</div>
+
+    <div class="menu-item active" onclick="setActive(this);loadHome()">🏠 Home</div>
+    <div class="menu-item" onclick="setActive(this);loadLiked()">❤️ Liked</div>
+    <div class="menu-item" onclick="setActive(this);loadSaved()">🔖 Saved</div>
+  </div>
+
+  <div class="menu-footer">
+    Logged User
+  </div>
 </div>
 
 <div id="container"></div>
@@ -262,7 +266,6 @@ function render(data){
 
         <div class="info">
           <h3>${item.title||""}</h3>
-          <p>${item.category||""}</p>
         </div>
 
         <div class="actions">
@@ -277,6 +280,13 @@ function render(data){
     `;
   });
 }
+
+window.toggleMenu=()=>menu.classList.toggle("open");
+
+window.setActive=(el)=>{
+  document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
+  el.classList.add("active");
+};
 
 window.loadHome=()=>render(allReels);
 window.loadLiked=()=>render(allReels.filter(r=>userData.liked.includes(r.id)));
