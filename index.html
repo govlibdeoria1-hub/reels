@@ -1,10 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Current Affairs Reels</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -12,10 +10,9 @@
       margin: 0;
       overflow: hidden;
       background: black;
-      font-family: sans-serif;
     }
 
-    .container {
+    #container {
       height: 100vh;
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
@@ -27,7 +24,7 @@
       position: relative;
     }
 
-    .reel img {
+    img {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -36,70 +33,52 @@
     .overlay {
       position: absolute;
       bottom: 20px;
-      left: 15px;
+      left: 10px;
       color: white;
-      background: rgba(0,0,0,0.4);
-      padding: 10px;
-      border-radius: 10px;
     }
   </style>
 </head>
 
 <body>
 
-<div id="app" class="container"></div>
+<div id="container"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔥 आपका Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
+  apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6-tv6J1xghs-bwi5Cods",
   authDomain: "reels-f0d24.firebaseapp.com",
   projectId: "reels-f0d24",
-  storageBucket: "reels-f0d24.appspot.com",
-  messagingSenderId: "658150381663",
-  appId: "1:658150381663:web:21f4e37a3163ea0f8f23ea"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const appDiv = document.getElementById("app");
+const container = document.getElementById("container");
 
-// 🔥 Realtime data load (auto update)
+// 🔥 Load reels
 onSnapshot(collection(db, "reels"), (snapshot) => {
 
-  appDiv.innerHTML = "";
+  container.innerHTML = "";
 
-  if(snapshot.empty){
-    appDiv.innerHTML = "<h1 style='color:white;text-align:center;margin-top:50%'>No Data Found</h1>";
-    return;
-  }
-
-  snapshot.forEach((doc) => {
-    const item = doc.data();
-
-    // ✅ Safe data (undefined fix)
-    const image = item.image || "";
-    const title = item.title || "No Title";
-    const category = item.category || "General";
+  snapshot.forEach((docItem) => {
+    const data = docItem.data();
 
     const reel = document.createElement("div");
     reel.className = "reel";
 
     reel.innerHTML = `
-      <img src="${image}" />
-
+      <img src="${data.image}" />
       <div class="overlay">
-        <h2>${title}</h2>
-        <p>${category}</p>
+        <h2>${data.title || "No Title"}</h2>
+        <p>${data.category || ""}</p>
       </div>
     `;
 
-    appDiv.appendChild(reel);
+    container.appendChild(reel);
   });
 
 });
