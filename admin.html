@@ -7,19 +7,19 @@
 
 <body class="bg-black text-white">
 
-<div id="main" style="display:none;" class="p-4">
+<div id="main" style="display:none;" class="p-4 max-w-md mx-auto">
 
-  <h1 class="text-2xl mb-4">Admin Panel</h1>
+  <h1 class="text-2xl mb-4 text-center">Admin Panel</h1>
 
   <!-- Upload Section -->
   <div class="bg-gray-800 p-4 rounded mb-4">
     <h2 class="mb-2">Upload Reel</h2>
 
-    <input type="file" id="file" class="mb-2">
+    <input type="file" id="file" class="mb-2 w-full">
     <input id="title" placeholder="Title" class="w-full p-2 mb-2 text-black">
     <input id="category" placeholder="Category" class="w-full p-2 mb-2 text-black">
 
-    <button onclick="upload()" class="bg-green-500 px-4 py-2 rounded">Upload</button>
+    <button onclick="upload()" class="bg-green-500 w-full p-2 rounded">Upload</button>
   </div>
 
   <!-- List Section -->
@@ -40,11 +40,12 @@ if(pass !== "1997"){
 }
 document.getElementById("main").style.display = "block";
 
-// 🔥 Firebase
+// 🔥 Firebase Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+// 🔥 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
   authDomain: "reels-f0d24.firebaseapp.com",
@@ -58,34 +59,48 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// 🔥 Upload Function
+// 🚀 Upload Function (Error handled)
 window.upload = async function(){
 
-  const file = document.getElementById("file").files[0];
-  const title = document.getElementById("title").value;
-  const category = document.getElementById("category").value;
+  try {
+    const file = document.getElementById("file").files[0];
+    const title = document.getElementById("title").value;
+    const category = document.getElementById("category").value;
 
-  if(!file || !title || !category){
-    alert("Fill all fields");
-    return;
+    if(!file || !title || !category){
+      alert("Please fill all fields");
+      return;
+    }
+
+    // Upload image
+    const storageRef = ref(storage, "reels/" + Date.now() + file.name);
+    await uploadBytes(storageRef, file);
+
+    // Get URL
+    const url = await getDownloadURL(storageRef);
+
+    // Save to Firestore
+    await addDoc(collection(db, "reels"), {
+      image: url,
+      title: title,
+      category: category
+    });
+
+    alert("Uploaded Successfully ✅");
+
+    // Clear inputs
+    document.getElementById("file").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("category").value = "";
+
+  } catch(error){
+    console.error(error);
+    alert("Error: " + error.message);
   }
-
-  const storageRef = ref(storage, "reels/" + Date.now() + file.name);
-  await uploadBytes(storageRef, file);
-
-  const url = await getDownloadURL(storageRef);
-
-  await addDoc(collection(db, "reels"), {
-    image: url,
-    title: title,
-    category: category
-  });
-
-  alert("Uploaded ✅");
 
 };
 
-// 🔥 Load + Delete
+// 🔥 Load Reels
 const listDiv = document.getElementById("list");
 
 onSnapshot(collection(db, "reels"), (snapshot) => {
@@ -95,13 +110,15 @@ onSnapshot(collection(db, "reels"), (snapshot) => {
   snapshot.forEach((docItem) => {
     const data = docItem.data();
 
+    const title = data.title || "No Title";
+
     const div = document.createElement("div");
-    div.className = "bg-gray-700 p-2 mb-2 rounded";
+    div.className = "bg-gray-700 p-2 mb-3 rounded";
 
     div.innerHTML = `
-      <img src="${data.image}" style="width:100%;height:120px;object-fit:cover;" />
-      <p>${data.title}</p>
-      <button onclick="deleteReel('${docItem.id}')" class="bg-red-500 px-2 py-1 mt-1">Delete</button>
+      <img src="${data.image}" style="width:100%;height:150px;object-fit:cover;border-radius:5px;" />
+      <p class="mt-1">${title}</p>
+      <button onclick="deleteReel('${docItem.id}')" class="bg-red-500 px-3 py-1 mt-1 rounded">Delete</button>
     `;
 
     listDiv.appendChild(div);
@@ -109,10 +126,12 @@ onSnapshot(collection(db, "reels"), (snapshot) => {
 
 });
 
-// 🔥 Delete
+// ❌ Delete Function
 window.deleteReel = async function(id){
-  await deleteDoc(doc(db, "reels", id));
-  alert("Deleted ❌");
+  if(confirm("Delete this reel?")){
+    await deleteDoc(doc(db, "reels", id));
+    alert("Deleted ❌");
+  }
 };
 
 </script>
