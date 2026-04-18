@@ -6,133 +6,107 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    body {
-      margin: 0;
-      background: black;
-      overflow: hidden;
-      font-family: sans-serif;
-    }
+    body { margin:0; background:black; overflow:hidden; }
 
     #container {
-      height: 100vh;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
+      height:100vh;
+      overflow-y:scroll;
+      scroll-snap-type:y mandatory;
     }
 
     .reel {
-      height: 100vh;
-      scroll-snap-align: start;
-      position: relative;
+      height:100vh;
+      scroll-snap-align:start;
+      position:relative;
     }
 
     img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+      width:100%;
+      height:100%;
+      object-fit:cover;
     }
 
     .overlay {
-      position: absolute;
-      bottom: 20px;
-      left: 10px;
-      color: white;
+      position:absolute;
+      bottom:20px;
+      left:10px;
+      color:white;
     }
 
     .actions {
-      position: absolute;
-      right: 10px;
-      bottom: 100px;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      font-size: 20px;
+      position:absolute;
+      right:10px;
+      bottom:100px;
+      color:white;
+      display:flex;
+      flex-direction:column;
+      gap:15px;
     }
 
-    /* 🔥 MODERN MENU */
     .menu {
-      position: fixed;
-      top: 0;
-      left: -260px;
-      width: 260px;
-      height: 100%;
-      background: #121212;
-      padding: 20px;
-      transition: 0.3s;
-      z-index: 100;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+      position:fixed;
+      left:-260px;
+      top:0;
+      width:260px;
+      height:100%;
+      background:#121212;
+      padding:20px;
+      transition:.3s;
     }
 
-    .menu.open {
-      left: 0;
-    }
-
-    .menu h2 {
-      color: #fff;
-      margin-bottom: 20px;
-      font-size: 22px;
-    }
-
-    .menu button {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      margin: 10px 0;
-      padding: 12px;
-      background: #1e1e1e;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: 0.2s;
-    }
-
-    .menu button:hover {
-      background: #333;
-    }
-
-    .menu button:active {
-      transform: scale(0.95);
-    }
+    .menu.open { left:0; }
 
     .hamburger {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      font-size: 26px;
-      color: white;
-      z-index: 200;
-      cursor: pointer;
+      position:fixed;
+      top:15px;
+      left:15px;
+      color:white;
+      font-size:24px;
+      z-index:100;
+    }
+
+    /* LOGIN */
+    #login {
+      position:fixed;
+      width:100%;
+      height:100%;
+      background:black;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      z-index:999;
     }
   </style>
 </head>
 
 <body>
 
-<!-- ☰ Hamburger -->
-<div class="hamburger" onclick="toggleMenu()">☰</div>
-
-<!-- 🔥 Modern Menu -->
-<div id="menu" class="menu">
-  <h2>📱 Reels Menu</h2>
-
-  <button onclick="loadHome()">🏠 Home</button>
-  <button onclick="loadLiked()">❤️ Liked</button>
-  <button onclick="loadSaved()">🔖 Saved</button>
+<!-- LOGIN SCREEN -->
+<div id="login">
+  <h2 class="text-white mb-4">Login</h2>
+  <input id="name" placeholder="Name" class="p-2 mb-2">
+  <input id="mobile" placeholder="Mobile" class="p-2 mb-2">
+  <button onclick="loginUser()" class="bg-green-500 p-2">Login</button>
 </div>
 
-<!-- 🎥 Reels -->
+<div class="hamburger" onclick="toggleMenu()">☰</div>
+
+<div id="menu" class="menu text-white">
+  <button onclick="loadHome()">Home</button>
+  <button onclick="loadLiked()">Liked</button>
+  <button onclick="loadSaved()">Saved</button>
+</div>
+
 <div id="container"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔥 Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
+  apiKey: "AIzaSy...",
   authDomain: "reels-f0d24.firebaseapp.com",
   projectId: "reels-f0d24"
 };
@@ -140,72 +114,104 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let userId = localStorage.getItem("userId");
+
+// 🔐 LOGIN
+window.loginUser = async () => {
+  const name = document.getElementById("name").value;
+  const mobile = document.getElementById("mobile").value;
+
+  if(!name || !mobile){
+    alert("Fill details");
+    return;
+  }
+
+  userId = mobile;
+
+  await setDoc(doc(db,"users",userId), {
+    name,
+    mobile,
+    liked: [],
+    saved: []
+  }, { merge:true });
+
+  localStorage.setItem("userId", userId);
+  document.getElementById("login").style.display = "none";
+
+  loadApp();
+};
+
+// AUTO LOGIN
+if(userId){
+  document.getElementById("login").style.display = "none";
+  loadApp();
+}
+
 const container = document.getElementById("container");
-
 let allReels = [];
+let userData = { liked:[], saved:[] };
 
-// ☰ Toggle Menu
-window.toggleMenu = () => {
-  document.getElementById("menu").classList.toggle("open");
-};
+// 🔥 LOAD APP
+function loadApp(){
 
-// 🏠 Home
-window.loadHome = () => {
-  render(allReels);
-  toggleMenu();
-};
-
-// ❤️ Liked
-window.loadLiked = () => {
-  const likedReels = allReels.filter(item => (item.likes || 0) > 0);
-  render(likedReels);
-  toggleMenu();
-};
-
-// 🔖 Saved
-window.loadSaved = () => {
-  const savedReels = allReels.filter(item => (item.saves || 0) > 0);
-  render(savedReels);
-  toggleMenu();
-};
-
-// ❤️ Like
-window.likeReel = async (id) => {
-  const ref = doc(db, "reels", id);
-  await updateDoc(ref, {
-    likes: increment(1)
+  // user data
+  onSnapshot(doc(db,"users",userId), (docSnap)=>{
+    userData = docSnap.data() || { liked:[], saved:[] };
+    render(allReels);
   });
-};
 
-// 🔖 Save
-window.saveReel = async (id) => {
-  const ref = doc(db, "reels", id);
-  await updateDoc(ref, {
-    saves: increment(1)
+  // reels
+  onSnapshot(collection(db,"reels"), (snap)=>{
+    allReels = [];
+    snap.forEach(d=>{
+      allReels.push({ id:d.id, ...d.data() });
+    });
+    render(allReels);
   });
+}
+
+// ❤️ LIKE
+window.toggleLike = async(id)=>{
+  const ref = doc(db,"users",userId);
+
+  if(userData.liked.includes(id)){
+    await updateDoc(ref,{ liked: arrayRemove(id) });
+  } else {
+    await updateDoc(ref,{ liked: arrayUnion(id) });
+  }
 };
 
-// 🎥 Render
-function render(data) {
+// 🔖 SAVE
+window.toggleSave = async(id)=>{
+  const ref = doc(db,"users",userId);
 
-  container.innerHTML = "";
+  if(userData.saved.includes(id)){
+    await updateDoc(ref,{ saved: arrayRemove(id) });
+  } else {
+    await updateDoc(ref,{ saved: arrayUnion(id) });
+  }
+};
 
-  data.forEach((item) => {
+// 🎥 RENDER
+function render(data){
+  container.innerHTML="";
 
-    const reel = document.createElement("div");
-    reel.className = "reel";
+  data.forEach(item=>{
+    const reel=document.createElement("div");
+    reel.className="reel";
 
-    reel.innerHTML = `
-      <img src="${item.image}" />
-
+    reel.innerHTML=`
+      <img src="${item.image}">
       <div class="overlay">
-        <h2>${item.title || ""}</h2>
-        <p>${item.category || ""}</p>
+        <h2>${item.title||""}</h2>
       </div>
-
       <div class="actions">
-        <div onclick="likeReel('${item.id}')">❤️ ${item.likes || 0}</div>
-        <div onclick="saveReel('${item.id}')">🔖 ${item.saves || 0}</div>
+        <div onclick="toggleLike('${item.id}')">
+          ${userData.liked.includes(item.id)?"❤️":"🤍"}
+        </div>
+        <div onclick="toggleSave('${item.id}')">
+          ${userData.saved.includes(item.id)?"🔖":"📑"}
+        </div>
       </div>
     `;
 
@@ -213,20 +219,14 @@ function render(data) {
   });
 }
 
-// 🔥 Firebase realtime
-onSnapshot(collection(db, "reels"), (snapshot) => {
+// MENU
+window.toggleMenu=()=>{
+  document.getElementById("menu").classList.toggle("open");
+};
 
-  allReels = [];
-
-  snapshot.forEach((docSnap) => {
-    allReels.push({
-      id: docSnap.id,
-      ...docSnap.data()
-    });
-  });
-
-  render(allReels);
-});
+window.loadHome=()=>render(allReels);
+window.loadLiked=()=>render(allReels.filter(r=>userData.liked.includes(r.id)));
+window.loadSaved=()=>render(allReels.filter(r=>userData.saved.includes(r.id)));
 
 </script>
 
