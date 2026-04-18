@@ -13,13 +13,13 @@
 
   <!-- Upload Section -->
   <div class="bg-gray-800 p-4 rounded mb-4">
-    <h2 class="mb-2">Upload Reel</h2>
+    <h2 class="mb-2">Add Reel (Image URL)</h2>
 
-    <input type="file" id="file" class="mb-2 w-full">
+    <input id="image" placeholder="Paste Image URL" class="w-full p-2 mb-2 text-black">
     <input id="title" placeholder="Title" class="w-full p-2 mb-2 text-black">
     <input id="category" placeholder="Category" class="w-full p-2 mb-2 text-black">
 
-    <button onclick="upload()" class="bg-green-500 w-full p-2 rounded">Upload</button>
+    <button onclick="upload()" class="bg-green-500 w-full p-2 rounded">Add Reel</button>
   </div>
 
   <!-- List Section -->
@@ -32,7 +32,7 @@
 
 <script type="module">
 
-// 🔐 Password Protection
+// 🔐 Password
 const pass = prompt("Enter Admin Password");
 if(pass !== "1997"){
   document.body.innerHTML = "<h1 style='color:white;text-align:center;margin-top:50%'>Access Denied</h1>";
@@ -40,12 +40,10 @@ if(pass !== "1997"){
 }
 document.getElementById("main").style.display = "block";
 
-// 🔥 Firebase Imports
+// 🔥 Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// 🔥 Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
   authDomain: "reels-f0d24.firebaseapp.com",
@@ -57,45 +55,35 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-// 🚀 Upload Function (Error handled)
+// 🚀 Upload (URL based)
 window.upload = async function(){
 
-  try {
-    const file = document.getElementById("file").files[0];
-    const title = document.getElementById("title").value;
-    const category = document.getElementById("category").value;
+  const image = document.getElementById("image").value;
+  const title = document.getElementById("title").value;
+  const category = document.getElementById("category").value;
 
-    if(!file || !title || !category){
-      alert("Please fill all fields");
-      return;
-    }
+  if(!image || !title || !category){
+    alert("Please fill all fields");
+    return;
+  }
 
-    // Upload image
-    const storageRef = ref(storage, "reels/" + Date.now() + file.name);
-    await uploadBytes(storageRef, file);
-
-    // Get URL
-    const url = await getDownloadURL(storageRef);
-
-    // Save to Firestore
+  try{
     await addDoc(collection(db, "reels"), {
-      image: url,
+      image: image,
       title: title,
       category: category
     });
 
-    alert("Uploaded Successfully ✅");
+    alert("Reel Added ✅");
 
-    // Clear inputs
-    document.getElementById("file").value = "";
+    // Clear fields
+    document.getElementById("image").value = "";
     document.getElementById("title").value = "";
     document.getElementById("category").value = "";
 
-  } catch(error){
-    console.error(error);
-    alert("Error: " + error.message);
+  }catch(e){
+    alert("Error: " + e.message);
   }
 
 };
@@ -109,7 +97,6 @@ onSnapshot(collection(db, "reels"), (snapshot) => {
 
   snapshot.forEach((docItem) => {
     const data = docItem.data();
-
     const title = data.title || "No Title";
 
     const div = document.createElement("div");
@@ -126,7 +113,7 @@ onSnapshot(collection(db, "reels"), (snapshot) => {
 
 });
 
-// ❌ Delete Function
+// ❌ Delete
 window.deleteReel = async function(id){
   if(confirm("Delete this reel?")){
     await deleteDoc(doc(db, "reels", id));
