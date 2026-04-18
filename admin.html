@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Admin Panel</title>
+  <title>Admin Upload</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-900 text-white flex items-center justify-center h-screen">
+<body class="bg-black text-white flex justify-center items-center h-screen">
 
 <div class="bg-gray-800 p-6 rounded w-80">
   <h2 class="text-xl mb-4">Upload Reel</h2>
 
-  <input id="image" type="text" placeholder="Image URL" class="w-full p-2 mb-2 text-black">
+  <input type="file" id="file" class="mb-3">
   <input id="title" type="text" placeholder="Title" class="w-full p-2 mb-2 text-black">
-  <input id="category" type="text" placeholder="Category" class="w-full p-2 mb-2 text-black">
+  <input id="category" type="text" placeholder="Category" class="w-full p-2 mb-3 text-black">
 
-  <button onclick="upload()" class="bg-blue-500 w-full p-2 rounded">Upload</button>
+  <button onclick="upload()" class="bg-green-500 w-full p-2 rounded">Upload</button>
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
@@ -33,28 +34,35 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-window.upload = async function() {
-  const image = document.getElementById("image").value;
+window.upload = async function(){
+
+  const file = document.getElementById("file").files[0];
   const title = document.getElementById("title").value;
   const category = document.getElementById("category").value;
 
-  if(!image || !title || !category){
+  if(!file || !title || !category){
     alert("Fill all fields");
     return;
   }
 
+  // 🔥 Upload to Firebase Storage
+  const storageRef = ref(storage, "reels/" + file.name);
+  await uploadBytes(storageRef, file);
+
+  // 🔥 Get Image URL
+  const url = await getDownloadURL(storageRef);
+
+  // 🔥 Save to Firestore
   await addDoc(collection(db, "reels"), {
-    image,
-    title,
-    category
+    image: url,
+    title: title,
+    category: category
   });
 
   alert("Uploaded Successfully ✅");
 
-  document.getElementById("image").value = "";
-  document.getElementById("title").value = "";
-  document.getElementById("category").value = "";
 };
 
 </script>
