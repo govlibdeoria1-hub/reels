@@ -49,37 +49,58 @@
       font-size: 20px;
     }
 
+    /* 🔥 MODERN MENU */
     .menu {
       position: fixed;
       top: 0;
-      left: -250px;
-      width: 250px;
+      left: -260px;
+      width: 260px;
       height: 100%;
-      background: #111;
+      background: #121212;
       padding: 20px;
       transition: 0.3s;
       z-index: 100;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
     }
 
     .menu.open {
       left: 0;
     }
 
+    .menu h2 {
+      color: #fff;
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
     .menu button {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       width: 100%;
       margin: 10px 0;
-      padding: 10px;
-      background: #333;
+      padding: 12px;
+      background: #1e1e1e;
       color: white;
       border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: 0.2s;
+    }
+
+    .menu button:hover {
+      background: #333;
+    }
+
+    .menu button:active {
+      transform: scale(0.95);
     }
 
     .hamburger {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      font-size: 24px;
+      top: 15px;
+      left: 15px;
+      font-size: 26px;
       color: white;
       z-index: 200;
       cursor: pointer;
@@ -89,18 +110,19 @@
 
 <body>
 
-<!-- ☰ Menu Button -->
+<!-- ☰ Hamburger -->
 <div class="hamburger" onclick="toggleMenu()">☰</div>
 
-<!-- Sidebar Menu -->
+<!-- 🔥 Modern Menu -->
 <div id="menu" class="menu">
-  <h2>Menu</h2>
-  <button onclick="loadHome()">Home</button>
-  <button onclick="loadLiked()">Liked</button>
-  <button onclick="loadSaved()">Saved</button>
+  <h2>📱 Reels Menu</h2>
+
+  <button onclick="loadHome()">🏠 Home</button>
+  <button onclick="loadLiked()">❤️ Liked</button>
+  <button onclick="loadSaved()">🔖 Saved</button>
 </div>
 
-<!-- Reels Container -->
+<!-- 🎥 Reels -->
 <div id="container"></div>
 
 <script type="module">
@@ -147,7 +169,7 @@ window.loadSaved = () => {
   toggleMenu();
 };
 
-// ❤️ Like Function
+// ❤️ Like
 window.likeReel = async (id) => {
   const ref = doc(db, "reels", id);
   await updateDoc(ref, {
@@ -155,7 +177,7 @@ window.likeReel = async (id) => {
   });
 };
 
-// 🔖 Save Function
+// 🔖 Save
 window.saveReel = async (id) => {
   const ref = doc(db, "reels", id);
   await updateDoc(ref, {
@@ -163,7 +185,7 @@ window.saveReel = async (id) => {
   });
 };
 
-// 🎥 Render Reels
+// 🎥 Render
 function render(data) {
 
   container.innerHTML = "";
@@ -191,7 +213,7 @@ function render(data) {
   });
 }
 
-// 🔥 Firebase Real-time Data
+// 🔥 Firebase realtime
 onSnapshot(collection(db, "reels"), (snapshot) => {
 
   allReels = [];
