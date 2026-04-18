@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Reels App</title>
+  <title>Current Affairs Reels</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
@@ -13,26 +14,76 @@
       overflow: hidden;
     }
 
+    /* LOGIN UI */
+    #login {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f172a, #020617);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .login-box {
+      width: 90%;
+      max-width: 350px;
+      padding: 25px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(15px);
+      text-align: center;
+      color: white;
+    }
+
+    .logo {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 10px;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(90deg, #7c3aed, #ec4899);
+      color: white;
+    }
+
+    .guest {
+      background: #111 !important;
+      border: 1px solid #444;
+    }
+
+    /* REELS */
     #container {
       height: 100vh;
       overflow-y: scroll;
       scroll-snap-type: y mandatory;
-      position: relative;
-      z-index: 1;
     }
 
     .reel {
       height: 100vh;
-      scroll-snap-align: start;
       position: relative;
-      z-index: 1;
+      scroll-snap-align: start;
     }
 
     .reel img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      z-index: 0;
     }
 
     .overlay {
@@ -40,7 +91,6 @@
       bottom: 20px;
       left: 10px;
       color: white;
-      z-index: 2;
     }
 
     .actions {
@@ -51,11 +101,10 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
-      z-index: 2;
       font-size: 20px;
     }
 
-    /* 🔥 HAMBURGER */
+    /* MENU */
     .hamburger {
       position: fixed;
       top: 15px;
@@ -63,10 +112,8 @@
       font-size: 26px;
       color: white;
       z-index: 9999;
-      cursor: pointer;
     }
 
-    /* 🔥 MENU */
     .menu {
       position: fixed;
       top: 0;
@@ -77,51 +124,17 @@
       padding: 20px;
       transition: 0.3s;
       z-index: 9998;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
     }
 
     .menu.open {
       left: 0;
     }
 
-    .menu h2 {
-      color: white;
-      margin-bottom: 20px;
-    }
-
     .menu button {
-      width: 100%;
-      padding: 12px;
       margin: 10px 0;
       background: #1e1e1e;
-      color: white;
-      border: none;
-      border-radius: 10px;
     }
 
-    .menu button:hover {
-      background: #333;
-    }
-
-    /* LOGIN */
-    #login {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      background: black;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      z-index: 10000;
-    }
-
-    input {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: none;
-    }
   </style>
 </head>
 
@@ -129,17 +142,26 @@
 
 <!-- LOGIN -->
 <div id="login">
-  <h2 class="text-white mb-4">Login</h2>
-  <input id="name" placeholder="Name">
-  <input id="mobile" placeholder="Mobile">
-  <button onclick="loginUser()" class="bg-green-500 p-2 mt-2">Login</button>
+  <div class="login-box">
+    <div class="logo">⚡</div>
+    <h1>Current Affairs One Shot</h1>
+    <p>📖 Swipe. Learn. Succeed.</p>
+
+    <input id="name" placeholder="Enter your name">
+    <input id="mobile" placeholder="Mobile number">
+
+    <button onclick="loginUser()">➡️ Continue</button>
+
+    <p>or</p>
+
+    <button class="guest" onclick="guestLogin()">Browse as Guest</button>
+  </div>
 </div>
 
 <!-- MENU -->
 <div class="hamburger" onclick="toggleMenu()">☰</div>
 
 <div id="menu" class="menu">
-  <h2>📱 Menu</h2>
   <button onclick="loadHome()">🏠 Home</button>
   <button onclick="loadLiked()">❤️ Liked</button>
   <button onclick="loadSaved()">🔖 Saved</button>
@@ -166,32 +188,34 @@ let userId = localStorage.getItem("userId");
 
 // LOGIN
 window.loginUser = async () => {
-  const name = document.getElementById("name").value;
-  const mobile = document.getElementById("mobile").value;
+  const name = name.value;
+  const mobile = mobile.value;
 
-  if (!name || !mobile) {
-    alert("Enter details");
-    return;
-  }
+  if (!name || !mobile) return alert("Fill details");
 
   userId = mobile;
 
   await setDoc(doc(db,"users",userId), {
-    name,
-    mobile,
-    liked: [],
-    saved: []
+    name, mobile, liked: [], saved: []
   }, { merge:true });
 
   localStorage.setItem("userId", userId);
-  document.getElementById("login").style.display = "none";
+  login.style.display = "none";
 
+  loadApp();
+};
+
+// GUEST
+window.guestLogin = () => {
+  userId = "guest_" + Date.now();
+  localStorage.setItem("userId", userId);
+  login.style.display = "none";
   loadApp();
 };
 
 // AUTO LOGIN
 if(userId){
-  document.getElementById("login").style.display = "none";
+  login.style.display = "none";
   loadApp();
 }
 
@@ -202,14 +226,12 @@ let userData = { liked:[], saved:[] };
 
 function loadApp(){
 
-  // USER DATA
-  onSnapshot(doc(db,"users",userId), (snap)=>{
+  onSnapshot(doc(db,"users",userId), snap=>{
     userData = snap.data() || { liked:[], saved:[] };
     render(allReels);
   });
 
-  // REELS
-  onSnapshot(collection(db,"reels"), (snap)=>{
+  onSnapshot(collection(db,"reels"), snap=>{
     allReels = [];
     snap.forEach(d=>{
       allReels.push({ id:d.id, ...d.data() });
@@ -250,9 +272,7 @@ function render(data){
 
     reel.innerHTML = `
       <img src="${item.image}">
-      <div class="overlay">
-        <h3>${item.title || ""}</h3>
-      </div>
+      <div class="overlay">${item.title || ""}</div>
 
       <div class="actions">
         <div onclick="toggleLike('${item.id}')">
@@ -269,19 +289,13 @@ function render(data){
 }
 
 // MENU
-window.toggleMenu = () => {
-  document.getElementById("menu").classList.toggle("open");
+window.toggleMenu = ()=>{
+  menu.classList.toggle("open");
 };
 
-window.loadHome = () => render(allReels);
-
-window.loadLiked = () => {
-  render(allReels.filter(r => userData.liked.includes(r.id)));
-};
-
-window.loadSaved = () => {
-  render(allReels.filter(r => userData.saved.includes(r.id)));
-};
+window.loadHome = ()=>render(allReels);
+window.loadLiked = ()=>render(allReels.filter(r=>userData.liked.includes(r.id)));
+window.loadSaved = ()=>render(allReels.filter(r=>userData.saved.includes(r.id)));
 
 </script>
 
