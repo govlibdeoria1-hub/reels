@@ -6,107 +6,155 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    body { margin:0; background:black; overflow:hidden; }
+    body {
+      margin: 0;
+      background: black;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
 
     #container {
-      height:100vh;
-      overflow-y:scroll;
-      scroll-snap-type:y mandatory;
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      position: relative;
+      z-index: 1;
     }
 
     .reel {
-      height:100vh;
-      scroll-snap-align:start;
-      position:relative;
+      height: 100vh;
+      scroll-snap-align: start;
+      position: relative;
+      z-index: 1;
     }
 
-    img {
-      width:100%;
-      height:100%;
-      object-fit:cover;
+    .reel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
     }
 
     .overlay {
-      position:absolute;
-      bottom:20px;
-      left:10px;
-      color:white;
+      position: absolute;
+      bottom: 20px;
+      left: 10px;
+      color: white;
+      z-index: 2;
     }
 
     .actions {
-      position:absolute;
-      right:10px;
-      bottom:100px;
-      color:white;
-      display:flex;
-      flex-direction:column;
-      gap:15px;
+      position: absolute;
+      right: 10px;
+      bottom: 100px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 2;
+      font-size: 20px;
     }
 
-    .menu {
-      position:fixed;
-      left:-260px;
-      top:0;
-      width:260px;
-      height:100%;
-      background:#121212;
-      padding:20px;
-      transition:.3s;
-    }
-
-    .menu.open { left:0; }
-
+    /* 🔥 HAMBURGER */
     .hamburger {
-      position:fixed;
-      top:15px;
-      left:15px;
-      color:white;
-      font-size:24px;
-      z-index:100;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      font-size: 26px;
+      color: white;
+      z-index: 9999;
+      cursor: pointer;
+    }
+
+    /* 🔥 MENU */
+    .menu {
+      position: fixed;
+      top: 0;
+      left: -260px;
+      width: 260px;
+      height: 100%;
+      background: #121212;
+      padding: 20px;
+      transition: 0.3s;
+      z-index: 9998;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+    }
+
+    .menu.open {
+      left: 0;
+    }
+
+    .menu h2 {
+      color: white;
+      margin-bottom: 20px;
+    }
+
+    .menu button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      background: #1e1e1e;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+
+    .menu button:hover {
+      background: #333;
     }
 
     /* LOGIN */
     #login {
-      position:fixed;
-      width:100%;
-      height:100%;
-      background:black;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-      z-index:999;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index: 10000;
+    }
+
+    input {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
     }
   </style>
 </head>
 
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="login">
   <h2 class="text-white mb-4">Login</h2>
-  <input id="name" placeholder="Name" class="p-2 mb-2">
-  <input id="mobile" placeholder="Mobile" class="p-2 mb-2">
-  <button onclick="loginUser()" class="bg-green-500 p-2">Login</button>
+  <input id="name" placeholder="Name">
+  <input id="mobile" placeholder="Mobile">
+  <button onclick="loginUser()" class="bg-green-500 p-2 mt-2">Login</button>
 </div>
 
+<!-- MENU -->
 <div class="hamburger" onclick="toggleMenu()">☰</div>
 
-<div id="menu" class="menu text-white">
-  <button onclick="loadHome()">Home</button>
-  <button onclick="loadLiked()">Liked</button>
-  <button onclick="loadSaved()">Saved</button>
+<div id="menu" class="menu">
+  <h2>📱 Menu</h2>
+  <button onclick="loadHome()">🏠 Home</button>
+  <button onclick="loadLiked()">❤️ Liked</button>
+  <button onclick="loadSaved()">🔖 Saved</button>
 </div>
 
+<!-- REELS -->
 <div id="container"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
   authDomain: "reels-f0d24.firebaseapp.com",
   projectId: "reels-f0d24"
 };
@@ -116,13 +164,13 @@ const db = getFirestore(app);
 
 let userId = localStorage.getItem("userId");
 
-// 🔐 LOGIN
+// LOGIN
 window.loginUser = async () => {
   const name = document.getElementById("name").value;
   const mobile = document.getElementById("mobile").value;
 
-  if(!name || !mobile){
-    alert("Fill details");
+  if (!name || !mobile) {
+    alert("Enter details");
     return;
   }
 
@@ -148,19 +196,19 @@ if(userId){
 }
 
 const container = document.getElementById("container");
+
 let allReels = [];
 let userData = { liked:[], saved:[] };
 
-// 🔥 LOAD APP
 function loadApp(){
 
-  // user data
-  onSnapshot(doc(db,"users",userId), (docSnap)=>{
-    userData = docSnap.data() || { liked:[], saved:[] };
+  // USER DATA
+  onSnapshot(doc(db,"users",userId), (snap)=>{
+    userData = snap.data() || { liked:[], saved:[] };
     render(allReels);
   });
 
-  // reels
+  // REELS
   onSnapshot(collection(db,"reels"), (snap)=>{
     allReels = [];
     snap.forEach(d=>{
@@ -170,7 +218,7 @@ function loadApp(){
   });
 }
 
-// ❤️ LIKE
+// LIKE
 window.toggleLike = async(id)=>{
   const ref = doc(db,"users",userId);
 
@@ -181,7 +229,7 @@ window.toggleLike = async(id)=>{
   }
 };
 
-// 🔖 SAVE
+// SAVE
 window.toggleSave = async(id)=>{
   const ref = doc(db,"users",userId);
 
@@ -192,25 +240,26 @@ window.toggleSave = async(id)=>{
   }
 };
 
-// 🎥 RENDER
+// RENDER
 function render(data){
-  container.innerHTML="";
+  container.innerHTML = "";
 
   data.forEach(item=>{
-    const reel=document.createElement("div");
-    reel.className="reel";
+    const reel = document.createElement("div");
+    reel.className = "reel";
 
-    reel.innerHTML=`
+    reel.innerHTML = `
       <img src="${item.image}">
       <div class="overlay">
-        <h2>${item.title||""}</h2>
+        <h3>${item.title || ""}</h3>
       </div>
+
       <div class="actions">
         <div onclick="toggleLike('${item.id}')">
-          ${userData.liked.includes(item.id)?"❤️":"🤍"}
+          ${userData.liked.includes(item.id) ? "❤️" : "🤍"}
         </div>
         <div onclick="toggleSave('${item.id}')">
-          ${userData.saved.includes(item.id)?"🔖":"📑"}
+          ${userData.saved.includes(item.id) ? "🔖" : "📑"}
         </div>
       </div>
     `;
@@ -220,13 +269,19 @@ function render(data){
 }
 
 // MENU
-window.toggleMenu=()=>{
+window.toggleMenu = () => {
   document.getElementById("menu").classList.toggle("open");
 };
 
-window.loadHome=()=>render(allReels);
-window.loadLiked=()=>render(allReels.filter(r=>userData.liked.includes(r.id)));
-window.loadSaved=()=>render(allReels.filter(r=>userData.saved.includes(r.id)));
+window.loadHome = () => render(allReels);
+
+window.loadLiked = () => {
+  render(allReels.filter(r => userData.liked.includes(r.id)));
+};
+
+window.loadSaved = () => {
+  render(allReels.filter(r => userData.saved.includes(r.id)));
+};
 
 </script>
 
