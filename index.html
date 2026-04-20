@@ -1,298 +1,320 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Reels Pro</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>Reels Pro | Premium</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body {
-      margin: 0;
-      background: #000;
-      font-family: system-ui;
-      overflow: hidden;
+    :root {
+      --primary: #7c3aed;
+      --secondary: #ec4899;
+      --glass: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.15);
     }
 
-    /* LOGIN */
+    body { margin: 0; background: #000; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; color: white; }
+
+    /* --- ENHANCED LOGIN --- */
     #login {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      background: radial-gradient(circle at top, #1e1b4b, #000);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
+      position: fixed; inset: 0; z-index: 10000;
+      background: linear-gradient(45deg, #0f172a, #581c87, #000);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      display: flex; justify-content: center; align-items: center;
     }
 
-    .login-box {
-      width: 90%;
-      max-width: 350px;
-      padding: 30px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(20px);
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .login-card {
+      width: 90%; max-width: 380px; padding: 40px 30px;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
       text-align: center;
-      color: white;
     }
 
-    .login-box input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: none;
-      background: rgba(255,255,255,0.1);
-      color: white;
-    }
-
-    .login-box button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      background: linear-gradient(90deg,#7c3aed,#ec4899);
-      border: none;
-      color: white;
-    }
-
-    /* REELS */
-    #container {
-      height: 100vh;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-    }
-
-    .reel {
-      height: 100vh;
-      position: relative;
-      scroll-snap-align: start;
-    }
-
-    .reel img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: brightness(0.9);
-    }
-
-    .gradient {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 50%;
-      background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
-    }
-
-    .info {
-      position: absolute;
-      bottom: 80px;
-      left: 15px;
-      color: white;
-    }
-
-    .actions {
-      position: absolute;
-      right: 10px;
-      bottom: 100px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      color: white;
-    }
-
-    .action-btn {
-      background: rgba(0,0,0,0.5);
-      padding: 12px;
-      border-radius: 50%;
-    }
-
-    /* 🔥 MODERN MENU */
-    .hamburger {
-      position: fixed;
-      top: 15px;
-      left: 15px;
-      font-size: 26px;
-      color: white;
-      z-index: 9999;
-    }
-
-    .menu {
-      position: fixed;
-      top: 0;
-      left: -280px;
-      width: 280px;
-      height: 100%;
-      background: rgba(20,20,20,0.6);
-      backdrop-filter: blur(20px);
-      padding: 20px;
-      transition: 0.35s;
-      z-index: 9998;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .menu.open {
-      left: 0;
-    }
-
-    .menu-header {
-      font-size: 22px;
-      color: white;
-      font-weight: bold;
+    .input-group {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 4px 16px;
       margin-bottom: 20px;
+      transition: all 0.3s;
     }
 
-    .menu-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px;
-      margin-bottom: 10px;
-      border-radius: 12px;
-      color: #ddd;
-      background: rgba(255,255,255,0.05);
+    .input-group:focus-within {
+      border-color: var(--secondary);
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.3);
     }
 
-    .menu-item.active {
-      background: linear-gradient(90deg,#7c3aed,#ec4899);
-      color: white;
+    .input-group input {
+      background: transparent; border: none; color: white;
+      width: 100%; height: 48px; outline: none; font-size: 16px;
     }
 
-    .menu-footer {
-      font-size: 13px;
-      color: #aaa;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding-top: 10px;
+    .btn-primary {
+      width: 100%; padding: 16px; border-radius: 16px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      font-weight: 700; letter-spacing: 0.5px;
+      transition: transform 0.2s, opacity 0.2s;
     }
 
+    .btn-primary:active { transform: scale(0.97); }
+
+    /* --- REELS CONTAINER --- */
+    #container {
+      height: 100vh; overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+    }
+    #container::-webkit-scrollbar { display: none; }
+
+    .reel { height: 100vh; position: relative; scroll-snap-align: start; }
+    .reel img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Overlay Gradients */
+    .vignette {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.9) 100%);
+      pointer-events: none;
+    }
+
+    /* --- IMPROVED ACTIONS --- */
+    .actions {
+      position: absolute; right: 12px; bottom: 100px;
+      display: flex; flex-direction: column; gap: 20px; align-items: center;
+    }
+
+    .action-circle {
+      width: 54px; height: 54px;
+      background: rgba(20, 20, 20, 0.6);
+      backdrop-filter: blur(15px);
+      border: 1px solid var(--glass-border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .action-circle:active { transform: scale(1.4); }
+    .action-circle.liked { color: #ff2d55; text-shadow: 0 0 15px rgba(255, 45, 85, 0.6); }
+    .action-circle.saved { color: #ffcc00; text-shadow: 0 0 15px rgba(255, 204, 0, 0.6); }
+
+    /* --- MODERN MENU --- */
+    .nav-trigger {
+      position: fixed; top: 20px; left: 20px; z-index: 9999;
+      width: 45px; height: 45px; background: var(--glass);
+      backdrop-filter: blur(10px); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--glass-border); cursor: pointer;
+    }
+
+    .sidebar {
+      position: fixed; top: 0; left: -300px; width: 280px; height: 100%;
+      background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(30px);
+      z-index: 9998; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 80px 20px 20px; border-right: 1px solid var(--glass-border);
+    }
+
+    .sidebar.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.8); }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 15px;
+      padding: 14px 20px; margin-bottom: 10px; border-radius: 16px;
+      color: #94a3b8; font-weight: 500; transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .nav-item i { font-size: 20px; }
+    .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(236, 72, 153, 0.2));
+      border: 1px solid var(--glass-border); color: white;
+    }
+
+    .user-profile {
+      position: absolute; bottom: 30px; left: 20px; right: 20px;
+      padding-top: 20px; border-top: 1px solid var(--glass-border);
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(var(--primary), var(--secondary));
+    }
   </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="login">
-  <div class="login-box">
-    <h2>⚡ Reels Pro</h2>
-    <input id="mobile" placeholder="Enter mobile">
-    <button onclick="loginUser()">Continue</button>
-  </div>
-</div>
-
-<!-- MENU -->
-<div class="hamburger" onclick="toggleMenu()">☰</div>
-
-<div id="menu" class="menu">
-  <div>
-    <div class="menu-header">Reels Pro</div>
-
-    <div class="menu-item active" onclick="setActive(this);loadHome()">🏠 Home</div>
-    <div class="menu-item" onclick="setActive(this);loadLiked()">❤️ Liked</div>
-    <div class="menu-item" onclick="setActive(this);loadSaved()">🔖 Saved</div>
-  </div>
-
-  <div class="menu-footer">
-    Logged User
-  </div>
-</div>
-
-<div id="container"></div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const app = initializeApp({
-  apiKey: "AIzaSy...",
-  authDomain: "reels-f0d24.firebaseapp.com",
-  projectId: "reels-f0d24"
-});
-
-const db = getFirestore(app);
-
-let userId = localStorage.getItem("userId");
-
-window.loginUser = async ()=>{
-  userId = mobile.value;
-  await setDoc(doc(db,"users",userId), {liked:[],saved:[]},{merge:true});
-  localStorage.setItem("userId",userId);
-  login.style.display="none";
-  loadApp();
-};
-
-if(userId){ login.style.display="none"; loadApp(); }
-
-let allReels=[], userData={liked:[],saved:[]};
-
-function loadApp(){
-
-  onSnapshot(doc(db,"users",userId), s=>{
-    userData=s.data()||{liked:[],saved:[]};
-    render(allReels);
-  });
-
-  onSnapshot(collection(db,"reels"), s=>{
-    allReels=[];
-    s.forEach(d=>allReels.push({id:d.id,...d.data()}));
-    render(allReels);
-  });
-}
-
-window.toggleLike=async(id)=>{
-  const ref=doc(db,"users",userId);
-  userData.liked.includes(id)
-  ? await updateDoc(ref,{liked:arrayRemove(id)})
-  : await updateDoc(ref,{liked:arrayUnion(id)});
-};
-
-window.toggleSave=async(id)=>{
-  const ref=doc(db,"users",userId);
-  userData.saved.includes(id)
-  ? await updateDoc(ref,{saved:arrayRemove(id)})
-  : await updateDoc(ref,{saved:arrayUnion(id)});
-};
-
-function render(data){
-  container.innerHTML="";
-
-  data.forEach(item=>{
-    container.innerHTML+=`
-      <div class="reel">
-        <img src="${item.image}">
-        <div class="gradient"></div>
-
-        <div class="info">
-          <h3>${item.title||""}</h3>
-        </div>
-
-        <div class="actions">
-          <div class="action-btn" onclick="toggleLike('${item.id}')">
-            ${userData.liked.includes(item.id)?"❤️":"🤍"}
-          </div>
-          <div class="action-btn" onclick="toggleSave('${item.id}')">
-            ${userData.saved.includes(item.id)?"🔖":"📑"}
-          </div>
-        </div>
+  <div id="login">
+    <div class="login-card">
+      <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/20">
+        <i class="fa-solid fa-bolt-lightning text-3xl text-pink-500"></i>
       </div>
-    `;
-  });
-}
+      <h1 class="text-3xl font-black mb-2 tracking-tight">Reels<span class="text-pink-500">Pro</span></h1>
+      <p class="text-gray-400 mb-8 text-sm">Experience content in high definition</p>
+      
+      <div class="input-group">
+        <input id="mobileInput" type="tel" placeholder="Mobile Number">
+      </div>
+      <button id="loginBtn" class="btn-primary shadow-lg shadow-pink-500/20">ENTER EXPERIENCE</button>
+    </div>
+  </div>
 
-window.toggleMenu=()=>menu.classList.toggle("open");
+  <div class="nav-trigger" id="menuToggle">
+    <i class="fa-solid fa-bars-staggered"></i>
+  </div>
 
-window.setActive=(el)=>{
-  document.querySelectorAll(".menu-item").forEach(i=>i.classList.remove("active"));
-  el.classList.add("active");
-};
+  <div id="sidebar" class="sidebar">
+    <div class="nav-item active" id="navHome"><i class="fa-solid fa-house"></i> Discovery</div>
+    <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart"></i> Liked Content</div>
+    <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark"></i> Collections</div>
+    
+    <div class="user-profile">
+      <div class="avatar"></div>
+      <div>
+        <div class="text-xs text-gray-500">ACCOUNT</div>
+        <div id="userDisplay" class="text-sm font-bold">Guest User</div>
+      </div>
+    </div>
+  </div>
 
-window.loadHome=()=>render(allReels);
-window.loadLiked=()=>render(allReels.filter(r=>userData.liked.includes(r.id)));
-window.loadSaved=()=>render(allReels.filter(r=>userData.saved.includes(r.id)));
+  <div id="container"></div>
 
-</script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY", 
+      authDomain: "reels-f0d24.firebaseapp.com",
+      projectId: "reels-f0d24"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let userId = localStorage.getItem("userId");
+    let allReels = [], userData = { liked: [], saved: [] };
+    let currentView = 'home';
+
+    const container = document.getElementById('container');
+    const sidebar = document.getElementById('sidebar');
+
+    const render = (data) => {
+      container.innerHTML = data.length ? "" : `
+        <div class="h-screen flex items-center justify-center text-gray-500">
+          <div class="text-center">
+            <i class="fa-solid fa-layer-group text-4xl mb-4 opacity-20"></i>
+            <p>No content found</p>
+          </div>
+        </div>`;
+
+      data.forEach(item => {
+        const isLiked = userData.liked.includes(item.id);
+        const isSaved = userData.saved.includes(item.id);
+        
+        const reelEl = document.createElement('div');
+        reelEl.className = 'reel';
+        reelEl.innerHTML = `
+          <img src="${item.image}" loading="lazy">
+          <div class="vignette"></div>
+          
+          <div class="absolute bottom-10 left-5 max-w-[70%]">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full border-2 border-pink-500 p-0.5">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${item.id}" class="rounded-full">
+              </div>
+              <span class="font-bold">@reels_creator</span>
+            </div>
+            <h3 class="text-lg font-medium leading-snug">${item.title || "Experience the moment #viral"}</h3>
+          </div>
+
+          <div class="actions">
+            <div class="action-circle ${isLiked ? 'liked' : ''}" id="like-${item.id}">
+              <i class="fa-solid fa-heart"></i>
+            </div>
+            <div class="action-circle ${isSaved ? 'saved' : ''}" id="save-${item.id}">
+              <i class="fa-solid fa-bookmark"></i>
+            </div>
+            <div class="action-circle">
+              <i class="fa-solid fa-share"></i>
+            </div>
+          </div>
+        `;
+        
+        reelEl.querySelector(`#like-${item.id}`).onclick = () => toggleAction(item.id, 'liked');
+        reelEl.querySelector(`#save-${item.id}`).onclick = () => toggleAction(item.id, 'saved');
+        
+        container.appendChild(reelEl);
+      });
+    };
+
+    const toggleAction = async (id, field) => {
+      const ref = doc(db, "users", userId);
+      const isPresent = userData[field].includes(id);
+      await updateDoc(ref, { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
+    };
+
+    const loadApp = () => {
+      document.getElementById('userDisplay').innerText = `ID: ${userId}`;
+      onSnapshot(doc(db, "users", userId), s => {
+        userData = s.data() || { liked: [], saved: [] };
+        refreshView();
+      });
+      onSnapshot(collection(db, "reels"), s => {
+        allReels = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        refreshView();
+      });
+    };
+
+    const refreshView = () => {
+      if (currentView === 'home') render(allReels);
+      else if (currentView === 'liked') render(allReels.filter(r => userData.liked.includes(r.id)));
+      else if (currentView === 'saved') render(allReels.filter(r => userData.saved.includes(r.id)));
+    };
+
+    // UI Events
+    document.getElementById('loginBtn').onclick = async () => {
+      const val = document.getElementById('mobileInput').value;
+      if (!val) return;
+      userId = val;
+      await setDoc(doc(db, "users", userId), { liked: [], saved: [] }, { merge: true });
+      localStorage.setItem("userId", userId);
+      document.getElementById('login').style.opacity = '0';
+      setTimeout(() => document.getElementById('login').style.display = "none", 500);
+      loadApp();
+    };
+
+    document.getElementById('menuToggle').onclick = () => sidebar.classList.toggle("open");
+
+    const setupNav = (id, view) => {
+      document.getElementById(id).onclick = (e) => {
+        currentView = view;
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        sidebar.classList.remove('open');
+        refreshView();
+      };
+    };
+
+    setupNav('navHome', 'home');
+    setupNav('navLiked', 'liked');
+    setupNav('navSaved', 'saved');
+
+    if (userId) {
+      document.getElementById('login').style.display = "none";
+      loadApp();
+    }
+  </script>
 </body>
 </html>
