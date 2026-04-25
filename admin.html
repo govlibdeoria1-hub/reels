@@ -3,105 +3,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Current Swipe | Admin</title>
+  <title>Current Swipe | Admin Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { background: #0a0a0a; color: white; font-family: 'Inter', sans-serif; }
-    .glass { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; backdrop-filter: blur(10px); }
-    input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; outline: none; }
-    input:focus { border-color: #06b6d4; }
+    body { background: #050505; color: white; font-family: 'Inter', sans-serif; }
+    .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
+    .tab-btn.active { border-bottom: 2px solid #06b6d4; color: #06b6d4; }
+    input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; outline: none; width: 100%; }
   </style>
 </head>
 <body class="p-6">
 
-  <div id="adminMain" style="display:none;" class="max-w-4xl mx-auto">
-    <header class="flex justify-between items-center mb-10">
-      <h1 class="text-2xl font-black italic">Current<span class="text-cyan-400">Admin</span></h1>
-      <button onclick="location.reload()" class="bg-white/10 px-4 py-2 rounded-xl text-xs">LOGOUT</button>
+  <div id="adminMain" style="display:none;" class="max-w-5xl mx-auto">
+    <header class="flex justify-between items-center mb-8">
+      <h1 class="text-2xl font-black tracking-tighter">CS<span class="text-cyan-400">ADMIN</span></h1>
+      <div class="flex gap-6">
+        <button onclick="switchTab('reels')" id="tReels" class="tab-btn active pb-2 font-bold text-sm">CONTENT</button>
+        <button onclick="switchTab('users')" id="tUsers" class="tab-btn pb-2 font-bold text-sm">REGISTERED USERS</button>
+        <button onclick="switchTab('notis')" id="tNotis" class="tab-btn pb-2 font-bold text-sm">BROADCAST</button>
+      </div>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      
-      <section class="glass p-6">
-        <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-plus text-cyan-400"></i> Add Reel</h2>
-        <div class="flex flex-col gap-3">
-          <input id="image" placeholder="Image URL">
-          <input id="title" placeholder="Reel Title">
-          <button onclick="addReel()" class="bg-cyan-500 p-3 rounded-xl font-bold mt-2 hover:bg-cyan-400 transition">Publish Reel</button>
-        </div>
-
-        <h2 class="text-lg font-bold mt-10 mb-4">Live Reels</h2>
-        <div id="reelList" class="space-y-3 max-h-[400px] overflow-y-auto pr-2"></div>
-      </section>
-
-      <section class="glass p-6">
-        <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-bullhorn text-pink-500"></i> Broadcast</h2>
-        <div class="flex flex-col gap-3">
-          <input id="notiTitle" placeholder="Notification Heading">
-          <input id="notiMsg" placeholder="Short Message...">
-          <button onclick="sendNoti()" class="bg-pink-600 p-3 rounded-xl font-bold mt-2 hover:bg-pink-500 transition">Push Notification</button>
-        </div>
-
-        <h2 class="text-lg font-bold mt-10 mb-4 text-gray-500">History</h2>
-        <div id="notiHistory" class="space-y-3"></div>
-      </section>
-
+    <div id="tabReels" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="glass p-6 h-fit">
+        <h3 class="font-bold mb-4">Add New Reel</h3>
+        <input id="imgUrl" placeholder="Image URL" class="mb-3">
+        <input id="title" placeholder="Reel Title" class="mb-3">
+        <input id="cat" placeholder="Category (e.g. Nature, Funny)" class="mb-3">
+        <button onclick="addReel()" class="w-full bg-cyan-600 p-3 rounded-xl font-bold">Publish</button>
+      </div>
+      <div class="md:col-span-2 glass p-6">
+        <h3 class="font-bold mb-4">Live Feed</h3>
+        <div id="reelGrid" class="grid grid-cols-2 gap-4"></div>
+      </div>
     </div>
+
+    <div id="tabUsers" style="display:none;" class="glass p-6">
+      <div class="flex justify-between mb-6">
+        <h3 class="font-bold">Total Registered Users</h3>
+        <span id="userCount" class="text-cyan-400 font-mono">0</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="text-slate-500 uppercase text-[10px] tracking-widest border-b border-white/10">
+            <tr><th class="py-4 px-2">Mobile Number</th><th class="py-4">Joined Date</th></tr>
+          </thead>
+          <tbody id="userTableList"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tabNotis" style="display:none;" class="max-w-lg mx-auto glass p-8">
+        <h3 class="font-bold mb-6">Global Broadcast</h3>
+        <input id="nTitle" placeholder="Notification Heading" class="mb-4">
+        <input id="nMsg" placeholder="Message content..." class="mb-4">
+        <button onclick="sendPush()" class="w-full bg-pink-600 p-4 rounded-xl font-bold">Send to All Users</button>
+    </div>
+
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const pass = prompt("Admin Password:");
-    if(pass === "1997") { document.getElementById('adminMain').style.display = 'block'; }
-    else { alert("Wrong!"); location.reload(); }
+    if(pass !== "1997") { alert("Denied"); location.reload(); }
+    document.getElementById('adminMain').style.display = 'block';
 
-    const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "reels-f0d24.firebaseapp.com", projectId: "reels-f0d24" };
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const firebaseConfig = { apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", authDomain: "reels-f0d24.firebaseapp.com", projectId: "reels-f0d24" };
+    const db = getFirestore(initializeApp(firebaseConfig));
 
-    // REELS LOGIC
+    // TAB SWITCHER
+    window.switchTab = (tab) => {
+      ['Reels', 'Users', 'Notis'].forEach(t => {
+        document.getElementById('tab'+t).style.display = 'none';
+        document.getElementById('t'+t).classList.remove('active');
+      });
+      document.getElementById('tab'+tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+      document.getElementById('t'+tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+    };
+
+    // CONTENT
     window.addReel = async () => {
-      const image = document.getElementById('image').value;
-      const title = document.getElementById('title').value;
-      if(!image || !title) return alert("Fill fields");
-      await addDoc(collection(db, "reels"), { image, title, time: Date.now() });
-      document.getElementById('image').value = ''; document.getElementById('title').value = '';
+      const image = imgUrl.value, t = title.value, c = cat.value;
+      if(!image || !t || !c) return alert("Fill everything");
+      await addDoc(collection(db, "reels"), { image, title:t, category:c, time: Date.now() });
+      imgUrl.value=''; title.value=''; cat.value='';
     };
 
     onSnapshot(query(collection(db, "reels"), orderBy("time", "desc")), s => {
-      reelList.innerHTML = s.docs.map(d => `
-        <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl">
-          <span class="text-sm truncate mr-4">${d.data().title}</span>
-          <button onclick="window.delDoc('reels', '${d.id}')" class="text-rose-500 text-xs">DELETE</button>
+      reelGrid.innerHTML = s.docs.map(d => `
+        <div class="bg-white/5 p-2 rounded-xl border border-white/5">
+          <img src="${d.data().image}" class="h-24 w-full object-cover rounded-lg mb-2">
+          <p class="text-[10px] font-bold truncate">${d.data().title}</p>
+          <button onclick="delDoc('reels','${d.id}')" class="text-rose-500 text-[10px] mt-2">DELETE</button>
         </div>
       `).join('');
     });
 
-    // NOTIFICATION LOGIC
-    window.sendNoti = async () => {
-      const title = document.getElementById('notiTitle').value;
-      const msg = document.getElementById('notiMsg').value;
-      if(!title || !msg) return alert("Fill fields");
-      await addDoc(collection(db, "notifications"), { title, msg, time: Date.now() });
-      document.getElementById('notiTitle').value = ''; document.getElementById('notiMsg').value = '';
+    // USERS RECORD
+    onSnapshot(collection(db, "users"), s => {
+      userCount.innerText = s.size;
+      userTableList.innerHTML = s.docs.map(d => `
+        <tr class="border-b border-white/5">
+          <td class="py-4 px-2 font-mono text-cyan-400">${d.id}</td>
+          <td class="py-4 text-slate-400 text-xs">${d.data().registeredAt ? new Date(d.data().registeredAt).toLocaleDateString() : 'Existing'}</td>
+        </tr>
+      `).join('');
+    });
+
+    // BROADCAST
+    window.sendPush = async () => {
+      await addDoc(collection(db, "notifications"), { title: nTitle.value, msg: nMsg.value, time: Date.now() });
+      nTitle.value=''; nMsg.value=''; alert("Sent!");
     };
 
-    onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
-      notiHistory.innerHTML = s.docs.map(d => `
-        <div class="bg-white/5 p-3 rounded-xl border-l-4 border-pink-500">
-          <div class="flex justify-between items-start">
-            <p class="text-xs font-bold">${d.data().title}</p>
-            <button onclick="window.delDoc('notifications', '${d.id}')" class="text-[10px] text-gray-500">REMOVE</button>
-          </div>
-          <p class="text-[10px] text-gray-400 mt-1">${d.data().msg}</p>
-        </div>
-      `).join('');
-    });
-
-    window.delDoc = async (col, id) => { if(confirm("Delete?")) await deleteDoc(doc(db, col, id)); };
+    window.delDoc = async (c, id) => { if(confirm("Confirm delete?")) await deleteDoc(doc(db, c, id)); };
   </script>
 </body>
 </html>
