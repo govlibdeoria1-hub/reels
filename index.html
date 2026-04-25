@@ -7,179 +7,77 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --primary: #6366f1;
-      --secondary: #06b6d4;
-      --glass: rgba(255, 255, 255, 0.1);
-      --glass-border: rgba(255, 255, 255, 0.15);
-    }
-
-    body { margin: 0; background: #000; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; color: white; }
+    :root { --primary: #6366f1; --secondary: #06b6d4; --glass-border: rgba(255, 255, 255, 0.15); }
+    body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; color: white; }
 
     /* --- LOGIN --- */
-    #login {
-      position: fixed; inset: 0; z-index: 10000;
-      background: radial-gradient(circle at top right, #1e1b4b, #000);
-      display: flex; justify-content: center; align-items: center;
-      transition: opacity 0.5s ease;
-    }
-
-    .login-card {
-      width: 90%; max-width: 380px; padding: 45px 30px;
-      background: rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(30px);
-      border: 1px solid var(--glass-border);
-      border-radius: 40px;
-      text-align: center;
-    }
-
-    .brand-glow { animation: pulseGlow 3s ease-in-out infinite; }
-    @keyframes pulseGlow {
-      0%, 100% { text-shadow: 0 0 10px rgba(99, 102, 241, 0.3); }
-      50% { text-shadow: 0 0 25px rgba(6, 182, 212, 0.6); }
-    }
-
-    .input-group {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 4px 18px;
-      margin-bottom: 24px;
-    }
-
-    .input-group input {
-      background: transparent; border: none; color: white;
-      width: 100%; height: 54px; outline: none; font-size: 16px;
-    }
-
-    .btn-primary {
-      width: 100%; padding: 18px; border-radius: 20px;
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      font-weight: 800; letter-spacing: 1px;
-      box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
-      transition: transform 0.2s;
-    }
-    .btn-primary:active { transform: scale(0.96); }
+    #login { position: fixed; inset: 0; z-index: 10000; background: radial-gradient(circle at top right, #1e1b4b, #000); display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
+    .login-card { width: 90%; max-width: 380px; padding: 45px 30px; background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 40px; text-align: center; }
 
     /* --- FEED --- */
-    #container {
-      height: 100vh; overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      scrollbar-width: none;
-    }
+    #container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
     #container::-webkit-scrollbar { display: none; }
-
     .reel { height: 100vh; position: relative; scroll-snap-align: start; }
     .reel img { width: 100%; height: 100%; object-fit: cover; }
+    .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 25%, transparent 65%, rgba(0,0,0,0.85) 100%); pointer-events: none; }
 
-    .vignette {
-      position: absolute; inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 25%, transparent 65%, rgba(0,0,0,0.85) 100%);
-      pointer-events: none;
-    }
+    /* --- UI ELEMENTS --- */
+    .nav-trigger, .noti-trigger { position: fixed; top: 25px; z-index: 999; width: 48px; height: 48px; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; }
+    .nav-trigger { left: 25px; }
+    .noti-trigger { right: 25px; }
+    .noti-dot { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; background: #f43f5e; border-radius: 50%; box-shadow: 0 0 10px #f43f5e; display: none; }
 
-    .actions {
-      position: absolute; right: 15px; bottom: 120px;
-      display: flex; flex-direction: column; gap: 22px;
-    }
-
-    .action-circle {
-      width: 58px; height: 58px;
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .action-circle:active { transform: scale(1.3); }
-    .action-circle.liked { color: #f43f5e; border-color: #f43f5e; }
-    .action-circle.saved { color: #f59e0b; border-color: #f59e0b; }
-
-    /* --- SIDEBAR --- */
-    .nav-trigger {
-      position: fixed; top: 25px; left: 25px; z-index: 9999;
-      width: 48px; height: 48px; background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(10px); border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid var(--glass-border); cursor: pointer;
-    }
-
-    .sidebar {
-      position: fixed; top: 0; left: -320px; width: 300px; height: 100%;
-      background: rgba(8, 8, 8, 0.85); backdrop-filter: blur(40px);
-      z-index: 9998; transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      padding: 100px 24px; border-right: 1px solid var(--glass-border);
-    }
+    .sidebar, .noti-pane { position: fixed; top: 0; height: 100%; background: rgba(8, 8, 8, 0.85); backdrop-filter: blur(40px); z-index: 998; transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid var(--glass-border); }
+    .sidebar { left: -320px; width: 300px; padding: 100px 24px; }
     .sidebar.open { left: 0; }
+    .noti-pane { right: -350px; width: 320px; padding: 100px 20px 20px; }
+    .noti-pane.open { right: 0; }
 
-    .nav-item {
-      display: flex; align-items: center; gap: 18px;
-      padding: 16px 20px; margin-bottom: 12px; border-radius: 20px;
-      color: #64748b; font-weight: 600; transition: 0.3s;
-      cursor: pointer;
-    }
-    .nav-item:hover { color: white; background: rgba(255,255,255,0.03); }
-    .nav-item.active { background: var(--glass); color: white; border: 1px solid var(--glass-border); }
-    .nav-item.logout { color: #f43f5e; margin-top: 20px; border: 1px solid rgba(244, 63, 94, 0.1); }
-    .nav-item.logout:hover { background: rgba(244, 63, 94, 0.1); color: #fb7185; }
-
+    .nav-item { display: flex; align-items: center; gap: 15px; padding: 16px; border-radius: 18px; color: #64748b; cursor: pointer; transition: 0.3s; }
+    .nav-item.active { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--glass-border); }
+    
+    .actions { position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; }
+    .action-circle { width: 55px; height: 55px; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; font-size: 22px; }
+    .action-circle.liked { color: #f43f5e; }
   </style>
 </head>
 <body>
 
   <div id="login">
     <div class="login-card">
-      <div class="w-20 h-20 bg-indigo-500/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-indigo-500/30">
-        <i class="fa-solid fa-wind text-4xl text-cyan-400"></i>
-      </div>
-      <h1 class="brand-glow text-4xl font-black mb-2 tracking-tighter">Current<span class="text-cyan-400">Swipe</span></h1>
-      <p class="text-slate-400 mb-10 text-sm font-medium">Flow through the finest content</p>
-      <div class="input-group">
-        <input id="mobileInput" type="tel" placeholder="Mobile Number">
-      </div>
-      <button id="loginBtn" class="btn-primary">START SWIPING</button>
+      <h1 class="text-3xl font-black mb-6 italic">Current<span class="text-cyan-400">Swipe</span></h1>
+      <input id="mobileInput" type="tel" placeholder="Mobile Number" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white outline-none focus:border-cyan-400">
+      <button id="loginBtn" class="w-full p-4 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-2xl font-bold uppercase tracking-wider">Start Swiping</button>
     </div>
   </div>
 
-  <div class="nav-trigger" id="menuToggle">
-    <i class="fa-solid fa-bars-staggered text-xl"></i>
+  <div class="nav-trigger" id="menuToggle"><i class="fa-solid fa-bars-staggered"></i></div>
+  <div class="noti-trigger" id="notiToggle">
+    <i class="fa-solid fa-bell"></i>
+    <div class="noti-dot" id="notiDot"></div>
   </div>
 
   <div id="sidebar" class="sidebar">
-    <div class="text-xs font-bold text-slate-500 tracking-widest mb-6 px-4">NAVIGATION</div>
-    <div class="nav-item active" id="navHome"><i class="fa-solid fa-compass"></i> Feed</div>
+    <div class="nav-item active" id="navHome"><i class="fa-solid fa-house"></i> Feed</div>
     <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart"></i> Liked</div>
     <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark"></i> Saved</div>
-    
-    <div class="nav-item logout" id="navLogout">
-      <i class="fa-solid fa-right-from-bracket"></i> Logout
-    </div>
-    
-    <div class="absolute bottom-10 left-6 right-6 p-6 rounded-3xl bg-white/5 border border-white/10">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-cyan-400"></div>
-        <div>
-          <div id="userDisplay" class="text-sm font-bold">User</div>
-          <div class="text-[10px] text-slate-500 tracking-wide uppercase">Pro Member</div>
-        </div>
+    <div class="nav-item text-rose-400 mt-10" id="navLogout"><i class="fa-solid fa-power-off"></i> Logout</div>
+    <div class="absolute bottom-10 left-6 text-sm opacity-40" id="userDisplay">User</div>
+  </div>
+
+  <div id="notiPane" class="noti-pane">
+    <h2 class="text-xl font-bold mb-6 px-2">Notifications</h2>
+    <div id="notiList" class="space-y-4">
       </div>
-    </div>
   </div>
 
   <div id="container"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY", 
-      authDomain: "reels-f0d24.firebaseapp.com",
-      projectId: "reels-f0d24"
-    };
-
+    const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "reels-f0d24.firebaseapp.com", projectId: "reels-f0d24" };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -187,122 +85,70 @@
     let allReels = [], userData = { liked: [], saved: [] };
     let currentView = 'home';
 
-    const container = document.getElementById('container');
-    const sidebar = document.getElementById('sidebar');
-    const loginScreen = document.getElementById('login');
-
+    // UI Logic
     const render = (data) => {
-      container.innerHTML = data.length ? "" : `
-        <div class="h-screen flex items-center justify-center text-slate-600">
-          <p class="font-medium tracking-widest uppercase">The current is empty</p>
-        </div>`;
-
-      data.forEach(item => {
-        const isLiked = userData.liked.includes(item.id);
-        const isSaved = userData.saved.includes(item.id);
-        
-        const reelEl = document.createElement('div');
-        reelEl.className = 'reel';
-        reelEl.innerHTML = `
+      container.innerHTML = data.map(item => `
+        <div class="reel">
           <img src="${item.image}" loading="lazy">
           <div class="vignette"></div>
           <div class="absolute bottom-12 left-6 right-20">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-11 h-11 rounded-full border-2 border-cyan-400 p-0.5">
-                <img src="https://api.dicebear.com/7.x/shapes/svg?seed=${item.id}" class="rounded-full bg-slate-800">
-              </div>
-              <span class="font-bold tracking-tight text-lg">Current Swipe</span>
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-[10px] font-bold">CS</div>
+              <span class="font-bold">Current Swipe</span>
             </div>
-            <p class="text-white/90 text-sm leading-relaxed font-normal">${item.title || "Experience the flow."}</p>
+            <p class="text-sm opacity-80">${item.title}</p>
           </div>
           <div class="actions">
-            <div class="action-circle ${isLiked ? 'liked' : ''}" id="like-${item.id}">
+            <div class="action-circle ${userData.liked.includes(item.id) ? 'liked' : ''}" onclick="window.toggleAction('${item.id}', 'liked')">
               <i class="fa-solid fa-heart"></i>
             </div>
-            <div class="action-circle ${isSaved ? 'saved' : ''}" id="save-${item.id}">
-              <i class="fa-solid fa-bookmark"></i>
-            </div>
-            <div class="action-circle">
-              <i class="fa-solid fa-paper-plane text-xl"></i>
-            </div>
           </div>
-        `;
-        
-        reelEl.querySelector(`#like-${item.id}`).onclick = () => toggleAction(item.id, 'liked');
-        reelEl.querySelector(`#save-${item.id}`).onclick = () => toggleAction(item.id, 'saved');
-        container.appendChild(reelEl);
-      });
+        </div>
+      `).join('');
     };
 
-    const toggleAction = async (id, field) => {
-      const ref = doc(db, "users", userId);
+    window.toggleAction = async (id, field) => {
       const isPresent = userData[field].includes(id);
-      await updateDoc(ref, { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
+      await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
     };
 
     const loadApp = () => {
-      document.getElementById('userDisplay').innerText = userId;
-      onSnapshot(doc(db, "users", userId), s => {
-        userData = s.data() || { liked: [], saved: [] };
-        refreshView();
-      });
-      onSnapshot(collection(db, "reels"), s => {
-        allReels = s.docs.map(d => ({ id: d.id, ...d.data() }));
-        refreshView();
+      userDisplay.innerText = `Account: ${userId}`;
+      onSnapshot(doc(db, "users", userId), s => { userData = s.data() || {liked:[], saved:[]}; refresh(); });
+      onSnapshot(collection(db, "reels"), s => { allReels = s.docs.map(d => ({id:d.id, ...d.data()})); refresh(); });
+      
+      // Notification Logic
+      onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(10)), s => {
+        notiDot.style.display = s.empty ? "none" : "block";
+        notiList.innerHTML = s.docs.map(d => `
+          <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+            <p class="text-sm font-bold text-cyan-400 mb-1">${d.data().title}</p>
+            <p class="text-xs opacity-60">${d.data().msg}</p>
+          </div>
+        `).join('');
       });
     };
 
-    const refreshView = () => {
-      if (currentView === 'home') render(allReels);
-      else if (currentView === 'liked') render(allReels.filter(r => userData.liked.includes(r.id)));
-      else if (currentView === 'saved') render(allReels.filter(r => userData.saved.includes(r.id)));
+    const refresh = () => {
+      if(currentView === 'home') render(allReels);
+      else if(currentView === 'liked') render(allReels.filter(r => userData.liked.includes(r.id)));
+      else if(currentView === 'saved') render(allReels.filter(r => userData.saved.includes(r.id)));
     };
 
-    // --- BUTTON LOGIC ---
-
-    document.getElementById('loginBtn').onclick = async () => {
-      const val = document.getElementById('mobileInput').value;
-      if (!val) return;
-      userId = val;
-      await setDoc(doc(db, "users", userId), { liked: [], saved: [] }, { merge: true });
+    loginBtn.onclick = async () => {
+      if(!mobileInput.value) return;
+      userId = mobileInput.value;
+      await setDoc(doc(db, "users", userId), {liked:[], saved:[]}, {merge:true});
       localStorage.setItem("userId", userId);
-      loginScreen.style.opacity = '0';
-      setTimeout(() => loginScreen.style.display = "none", 500);
+      login.style.display = "none";
       loadApp();
     };
 
-    document.getElementById('navLogout').onclick = () => {
-      if (confirm("Logout from Current Swipe?")) {
-        localStorage.removeItem("userId");
-        userId = null;
-        userData = { liked: [], saved: [] };
-        sidebar.classList.remove("open");
-        container.innerHTML = "";
-        loginScreen.style.display = "flex";
-        setTimeout(() => loginScreen.style.opacity = '1', 50);
-      }
-    };
+    menuToggle.onclick = () => sidebar.classList.toggle("open");
+    notiToggle.onclick = () => { notiPane.classList.toggle("open"); notiDot.style.display = "none"; };
+    navLogout.onclick = () => { localStorage.clear(); location.reload(); };
 
-    document.getElementById('menuToggle').onclick = () => sidebar.classList.toggle("open");
-
-    const setupNav = (id, view) => {
-      document.getElementById(id).onclick = (e) => {
-        currentView = view;
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        sidebar.classList.remove('open');
-        refreshView();
-      };
-    };
-
-    setupNav('navHome', 'home');
-    setupNav('navLiked', 'liked');
-    setupNav('navSaved', 'saved');
-
-    if (userId) {
-      loginScreen.style.display = "none";
-      loadApp();
-    }
+    if(userId) { login.style.display = "none"; loadApp(); }
   </script>
 </body>
 </html>
