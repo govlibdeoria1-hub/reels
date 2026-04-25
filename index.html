@@ -10,15 +10,18 @@
     :root { --primary: #6366f1; --secondary: #06b6d4; --glass-border: rgba(255, 255, 255, 0.15); }
     body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; color: white; }
 
+    /* --- LOGIN --- */
     #login { position: fixed; inset: 0; z-index: 10000; background: radial-gradient(circle at top right, #1e1b4b, #000); display: flex; justify-content: center; align-items: center; transition: opacity 0.5s; }
     .login-card { width: 90%; max-width: 380px; padding: 45px 30px; background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 40px; text-align: center; }
 
+    /* --- FEED --- */
     #container { height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; }
     #container::-webkit-scrollbar { display: none; }
     .reel { height: 100vh; position: relative; scroll-snap-align: start; }
     .reel img { width: 100%; height: 100%; object-fit: cover; }
     .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 25%, transparent 65%, rgba(0,0,0,0.85) 100%); pointer-events: none; }
 
+    /* --- UI ELEMENTS --- */
     .nav-trigger, .noti-trigger { position: fixed; top: 25px; z-index: 999; width: 48px; height: 48px; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; }
     .nav-trigger { left: 25px; }
     .noti-trigger { right: 25px; }
@@ -84,8 +87,9 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+    // PASTE YOUR CONFIG HERE
     const firebaseConfig = { 
-        apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", 
+        apiKey: "YOUR_API_KEY", 
         authDomain: "reels-f0d24.firebaseapp.com", 
         projectId: "reels-f0d24" 
     };
@@ -132,12 +136,21 @@
 
     const loadApp = () => {
       onSnapshot(doc(db, "users", userId), s => { userData = s.data() || {liked:[], saved:[]}; refreshView(); });
+      
       onSnapshot(collection(db, "reels"), s => {
         allReels = s.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        // Dynamic Category List Generation
         const cats = [...new Set(allReels.map(r => r.category).filter(Boolean))];
-        catList.innerHTML = cats.map(c => `<div class="cat-item ${activeCategory === c ? 'active' : ''}" onclick="window.filterCat('${c}')">${c}</div>`).join('');
+        catList.innerHTML = cats.map(c => `
+          <div class="cat-item ${activeCategory === c ? 'active' : ''}" onclick="window.filterCat('${c}')">
+            ${c}
+          </div>
+        `).join('');
+        
         refreshView();
       });
+
       onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
         notiDot.style.display = s.empty ? "none" : "block";
         notiList.innerHTML = s.docs.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${d.data().title}</p><p class="text-xs opacity-60">${d.data().msg}</p></div>`).join('');
@@ -145,13 +158,23 @@
     };
 
     window.filterCat = (cat) => {
-      activeCategory = cat; currentView = 'category';
+      activeCategory = cat; 
+      currentView = 'category';
+      // Reset main menu highlights
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       sidebar.classList.remove('open');
       refreshView();
     };
 
-    navHome.onclick = () => { activeCategory = null; currentView = 'home'; refreshView(); sidebar.classList.remove('open'); };
+    navHome.onclick = () => { 
+        activeCategory = null; 
+        currentView = 'home'; 
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        navHome.classList.add('active');
+        refreshView(); 
+        sidebar.classList.remove('open'); 
+    };
+
     loginBtn.onclick = async () => {
       const val = mobileInput.value; if(!val) return;
       userId = val;
