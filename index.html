@@ -36,6 +36,61 @@
   #loginBtn:active { background: #1877c9; }
   .login-sub { text-align: center; color: #8e8e8e; font-size: 13px; margin-top: 18px; }
 
+  /* ---------- OFFLINE SCREEN ---------- */
+  #offlineScreen {
+    position: fixed; inset: 0; z-index: 20000; background: #000;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 36px;
+  }
+  .signal-wrap {
+    position: relative; width: 120px; height: 120px; display: flex;
+    align-items: center; justify-content: center; margin-bottom: 30px;
+  }
+  .signal-ring {
+    position: absolute; border: 1.5px solid #0095f6; border-radius: 50%;
+    width: 60px; height: 60px; opacity: 0; animation: pingRing 2.4s ease-out infinite;
+  }
+  .signal-ring.ring2 { animation-delay: 0.6s; }
+  .signal-ring.ring3 { animation-delay: 1.2s; }
+  @keyframes pingRing {
+    0% { transform: scale(0.55); opacity: 0.75; }
+    100% { transform: scale(2.1); opacity: 0; }
+  }
+  .wifi-icon-box {
+    position: relative; width: 56px; height: 56px; border-radius: 50%;
+    background: #121212; border: 1.5px solid #262626; display: flex;
+    align-items: center; justify-content: center; z-index: 2;
+  }
+  .wifi-icon-box i {
+    font-size: 22px; color: #ed4956; animation: iconPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes iconPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(0.92); }
+  }
+  #offlineScreen h2 { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+  #offlineScreen p { font-size: 13.5px; color: #a8a8a8; line-height: 1.5; margin: 0 0 26px; max-width: 280px; }
+  #retryBtn {
+    padding: 11px 30px; background: #0095f6; border: none; border-radius: 8px;
+    color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform 0.12s ease;
+  }
+  #retryBtn:active { transform: scale(0.96); }
+  #retryBtn.shake { animation: shakeBtn 0.4s ease; }
+  @keyframes shakeBtn {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  .offline-dots { display: flex; gap: 5px; margin-top: 20px; }
+  .offline-dots span {
+    width: 5px; height: 5px; border-radius: 50%; background: #444; animation: dotFade 1.4s ease-in-out infinite;
+  }
+  .offline-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .offline-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotFade {
+    0%, 100% { opacity: 0.25; } 50% { opacity: 1; }
+  }
+
   /* ---------- FEED CONTAINER ---------- */
   #container {
     height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory;
@@ -220,6 +275,20 @@
 </head>
 <body>
 
+<!-- OFFLINE / NO INTERNET SCREEN -->
+<div id="offlineScreen">
+  <div class="signal-wrap">
+    <div class="signal-ring ring1"></div>
+    <div class="signal-ring ring2"></div>
+    <div class="signal-ring ring3"></div>
+    <div class="wifi-icon-box"><i class="fa-solid fa-wifi"></i></div>
+  </div>
+  <h2>No Internet Connection</h2>
+  <p>Please connect to the internet to continue using NewsWire</p>
+  <button id="retryBtn">Try Again</button>
+  <div class="offline-dots"><span></span><span></span><span></span></div>
+</div>
+
 <!-- LOGIN -->
 <div id="login">
   <div class="ig-logo">NewsWire</div>
@@ -300,6 +369,29 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // ---------- OFFLINE / CONNECTIVITY HANDLING ----------
+  const setOnlineStatus = () => {
+    if (navigator.onLine) {
+      offlineScreen.style.display = 'none';
+    } else {
+      offlineScreen.style.display = 'flex';
+    }
+  };
+  window.addEventListener('online', setOnlineStatus);
+  window.addEventListener('offline', setOnlineStatus);
+  setOnlineStatus();
+
+  retryBtn.onclick = () => {
+    setOnlineStatus();
+    if (navigator.onLine) {
+      location.reload();
+    } else {
+      retryBtn.classList.remove('shake');
+      void retryBtn.offsetWidth;
+      retryBtn.classList.add('shake');
+    }
+  };
+
   let userId = localStorage.getItem("userId");
   let allReels = [], userData = { liked: [], saved: [] }, activeReqPost = "";
   let currentMode = "home";
@@ -348,152 +440,4 @@
             </div>
           </div>
           <div class="action-item">
-            <div class="cap-avatar" style="width:30px;height:30px;font-size:12px;border-radius:8px;"><i class="fa-solid fa-ellipsis" style="font-size:14px;"></i></div>
-          </div>
-        </div>
-      </div>
-    `).join('') : `<div class="reel"><div class="empty-state"><i class="fa-regular fa-face-frown"></i><span>Nothing here yet</span></div></div>`;
-  };
-
-  // double-tap-to-like (works alongside dblclick for touch)
-  container.addEventListener('touchend', (e) => {
-    const reel = e.target.closest('.reel');
-    if (!reel) return;
-    const id = reel.dataset.id;
-    const now = Date.now();
-    if (lastTap[id] && now - lastTap[id] < 300) {
-      quickLike(id, reel);
-    }
-    lastTap[id] = now;
-  });
-
-  window.quickLike = async (id, reelEl) => {
-    if (!userData.liked?.includes(id)) {
-      await updateDoc(doc(db, "users", userId), { liked: arrayUnion(id) });
-    }
-    const burst = reelEl.querySelector('.burst-heart');
-    if (burst) {
-      burst.classList.remove('animate');
-      void burst.offsetWidth;
-      burst.classList.add('animate');
-    }
-  };
-
-  let activePostId = "";
-  let commentsUnsub = null;
-
-  const escapeHtml = (str) => (str || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-  window.openRequest = (postId, title) => {
-    activePostId = postId;
-    activeReqPost = title;
-    inputAvatar.innerText = initials(userId);
-    requestModal.style.display = 'block';
-    requestAnimFrame();
-
-    commentsList.innerHTML = `<div class="comment-empty">Loading comments...</div>`;
-    if (commentsUnsub) commentsUnsub();
-    commentsUnsub = onSnapshot(query(collection(db, "comments"), where("postId", "==", postId), where("approved", "==", true)), s => {
-      if (s.empty) {
-        commentsList.innerHTML = `<div class="comment-empty">No comments yet. Be the first to comment.</div>`;
-        return;
-      }
-      const rows = s.docs.map(d => d.data()).sort((a, b) => (a.time || 0) - (b.time || 0));
-      commentsList.innerHTML = rows.map(c => `
-        <div class="comment-row">
-          <div class="comment-avatar">${initials(c.userName)}</div>
-          <div class="comment-body"><span class="comment-user">${escapeHtml(c.userName)}</span>${escapeHtml(c.text)}</div>
-        </div>
-      `).join('');
-      commentsList.scrollTop = commentsList.scrollHeight;
-    });
-  };
-  function requestAnimFrame(){ requestAnimationFrame(()=> requestModal.classList.add('open')); }
-  window.closeRequest = () => {
-    requestModal.classList.remove('open');
-    setTimeout(()=> requestModal.style.display = 'none', 280);
-    if (commentsUnsub) { commentsUnsub(); commentsUnsub = null; }
-  };
-  window.submitRequest = async () => {
-    const text = userName.value.trim();
-    if (!text || !activePostId) return;
-    commentSendBtn.disabled = true;
-    await addDoc(collection(db, "comments"), {
-      postId: activePostId,
-      userName: userId,
-      text,
-      time: Date.now(),
-      approved: false
-    });
-    userName.value = "";
-    commentSendBtn.disabled = false;
-    pendingNote.innerText = "Your comment is awaiting admin approval.";
-    setTimeout(() => { pendingNote.innerText = ""; }, 3500);
-  };
-
-  window.toggleAction = async (id, field) => {
-    const isPresent = userData[field]?.includes(id);
-    await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
-  };
-
-  const closeAll = () => {
-    sidebar.classList.remove("open");
-    notiPane.classList.remove("open");
-    overlay.style.display = "none";
-  };
-
-  const loadApp = () => {
-    onSnapshot(doc(db, "users", userId), s => {
-      userData = s.data() || { liked: [], saved: [] };
-      render();
-    });
-    onSnapshot(collection(db, "reels"), s => {
-      allReels = s.docs.map(d => ({ id: d.id, ...d.data() }));
-      render();
-    });
-    onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
-      notiDot.style.display = s.empty ? "none" : "block";
-      notiList.innerHTML = s.empty
-        ? `<div class="noti-empty">No notifications yet</div>`
-        : s.docs.map(d => `
-          <div class="noti-card">
-            <div class="noti-icon"><i class="fa-solid fa-bolt"></i></div>
-            <div>
-              <div class="noti-title">${d.data().title || ''}</div>
-              <div class="noti-msg">${d.data().msg || ''}</div>
-            </div>
-          </div>`).join('');
-    });
-  };
-
-  const switchMode = (mode, btnId) => {
-    currentMode = mode;
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(btnId).classList.add('active');
-    closeAll();
-    container.scrollTop = 0;
-    render();
-  };
-
-  navHome.onclick = () => switchMode("home", "navHome");
-  navLiked.onclick = () => switchMode("liked", "navLiked");
-  navSaved.onclick = () => switchMode("saved", "navSaved");
-
-  overlay.onclick = closeAll;
-  menuToggle.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
-  notiToggle.onclick = () => { notiPane.classList.add("open"); overlay.style.display = "block"; notiDot.style.display = "none"; };
-  navLogout.onclick = () => { localStorage.clear(); location.reload(); };
-
-  loginBtn.onclick = async () => {
-    if (!mobileInput.value) return;
-    userId = mobileInput.value;
-    await setDoc(doc(db, "users", userId), { liked: [], saved: [], registeredAt: Date.now() }, { merge: true });
-    localStorage.setItem("userId", userId);
-    login.style.display = "none";
-    loadApp();
-  };
-
-  if (userId) { login.style.display = "none"; loadApp(); }
-</script>
-</body>
-</html>
+            <div class="cap-avatar" style="width:30px;
