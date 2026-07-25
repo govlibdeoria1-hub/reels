@@ -11,6 +11,8 @@
     .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
     .tab-btn.active { color: #06b6d4; border-bottom: 2px solid #06b6d4; }
     input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; outline: none; width: 100%; }
+    .badge-pending { background: rgba(251,146,60,0.15); color: #fb923c; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    .badge-approved { background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
   </style>
 </head>
 <body class="p-6">
@@ -21,6 +23,7 @@
       <div class="flex gap-2">
         <button onclick="switchTab('reels')" id="tReels" class="tab-btn active px-4 py-2 font-bold text-xs uppercase">Content</button>
         <button onclick="switchTab('requests')" id="tRequests" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-orange-400">Requests</button>
+        <button onclick="switchTab('comments')" id="tComments" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-yellow-400">Comments <span id="pendingCount" class="ml-1"></span></button>
         <button onclick="switchTab('users')" id="tUsers" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Users</button>
         <button onclick="switchTab('notis')" id="tNotis" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Broadcast</button>
       </div>
@@ -51,6 +54,25 @@
       </div>
     </div>
 
+    <div id="tabComments" style="display:none;" class="glass p-8">
+      <h3 class="font-bold text-xl mb-6 text-yellow-400">Comment Moderation</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-white/5 text-slate-500">
+            <tr>
+              <th class="p-4">Status</th>
+              <th class="p-4">User</th>
+              <th class="p-4">Post</th>
+              <th class="p-4">Comment</th>
+              <th class="p-4">Date</th>
+              <th class="p-4">Action</th>
+            </tr>
+          </thead>
+          <tbody id="commentTableList"></tbody>
+        </table>
+      </div>
+    </div>
+
     <div id="tabUsers" style="display:none;" class="glass p-8">
       <h3 class="font-bold mb-6">User Database</h3>
       <table class="w-full text-left text-sm">
@@ -71,7 +93,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const pass = prompt("Password:");
     if(pass === "1997") document.getElementById('adminMain').style.display = 'block'; else location.reload();
@@ -80,7 +102,7 @@
     const db = getFirestore(initializeApp(firebaseConfig));
 
     window.switchTab = (tab) => {
-      ['Reels', 'Requests', 'Users', 'Notis'].forEach(t => {
+      ['Reels', 'Requests', 'Comments', 'Users', 'Notis'].forEach(t => {
         document.getElementById('tab'+t).style.display = 'none';
         document.getElementById('t'+t).classList.remove('active');
       });
@@ -115,6 +137,34 @@
         </tr>
       `).join('');
     });
+
+    // COMMENTS MGMT
+    // Assumes comment docs look like: { postId, postTitle, userName, commentText, approved: false, time }
+    onSnapshot(query(collection(db, "comments"), orderBy("time", "desc")), s => {
+      const pending = s.docs.filter(d => !d.data().approved);
+      document.getElementById('pendingCount').textContent = pending.length ? `(${pending.length})` : '';
+
+      commentTableList.innerHTML = s.docs.map(d => {
+        const c = d.data();
+        const isApproved = !!c.approved;
+        return `
+        <tr class="border-b border-white/5 hover:bg-white/5 transition">
+          <td class="p-4">${isApproved ? '<span class="badge-approved">APPROVED</span>' : '<span class="badge-pending">PENDING</span>'}</td>
+          <td class="p-4 font-bold text-cyan-400">${c.userName || ''}</td>
+          <td class="p-4 text-xs italic">${c.postTitle || c.postId || ''}</td>
+          <td class="p-4 text-xs max-w-xs truncate">${c.commentText || ''}</td>
+          <td class="p-4 text-slate-500 text-[10px]">${c.time ? new Date(c.time).toLocaleDateString() : ''}</td>
+          <td class="p-4 flex gap-3">
+            ${!isApproved ? `<button onclick="approveComment('${d.id}')" class="text-emerald-500 text-xs font-bold">Approve</button>` : ''}
+            <button onclick="delDoc('comments','${d.id}')" class="text-rose-500 text-xs">Delete</button>
+          </td>
+        </tr>
+      `}).join('');
+    });
+
+    window.approveComment = async (id) => {
+      await updateDoc(doc(db, "comments", id), { approved: true });
+    };
 
     // USER MGMT
     onSnapshot(collection(db, "users"), s => {
