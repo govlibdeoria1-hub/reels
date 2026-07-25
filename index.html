@@ -295,7 +295,8 @@
   <div class="login-card">
     <input id="mobileInput" type="tel" placeholder="Mobile Number">
     <button id="loginBtn">Log in</button>
-    <div class="login-sub">Enter your number to continue</div>
+    <div class="login-sub" id="loginSub">Enter your number to continue</div>
+    <div id="loginError" style="color:#ed4956; font-size:12.5px; margin-top:10px; display:none; line-height:1.4;"></div>
   </div>
 </div>
 
@@ -440,4 +441,176 @@
             </div>
           </div>
           <div class="action-item">
-            <div class="cap-avatar" style="width:30px;
+            <div class="cap-avatar" style="width:30px;height:30px;font-size:12px;border-radius:8px;"><i class="fa-solid fa-ellipsis" style="font-size:14px;"></i></div>
+          </div>
+        </div>
+      </div>
+    `).join('') : `<div class="reel"><div class="empty-state"><i class="fa-regular fa-face-frown"></i><span>Nothing here yet</span></div></div>`;
+  };
+
+  // double-tap-to-like (works alongside dblclick for touch)
+  container.addEventListener('touchend', (e) => {
+    const reel = e.target.closest('.reel');
+    if (!reel) return;
+    const id = reel.dataset.id;
+    const now = Date.now();
+    if (lastTap[id] && now - lastTap[id] < 300) {
+      quickLike(id, reel);
+    }
+    lastTap[id] = now;
+  });
+
+  window.quickLike = async (id, reelEl) => {
+    if (!userData.liked?.includes(id)) {
+      await updateDoc(doc(db, "users", userId), { liked: arrayUnion(id) });
+    }
+    const burst = reelEl.querySelector('.burst-heart');
+    if (burst) {
+      burst.classList.remove('animate');
+      void burst.offsetWidth;
+      burst.classList.add('animate');
+    }
+  };
+
+  let activePostId = "";
+  let commentsUnsub = null;
+
+  const escapeHtml = (str) => (str || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  window.openRequest = (postId, title) => {
+    activePostId = postId;
+    activeReqPost = title;
+    inputAvatar.innerText = initials(userId);
+    requestModal.style.display = 'block';
+    requestAnimFrame();
+
+    commentsList.innerHTML = `<div class="comment-empty">Loading comments...</div>`;
+    if (commentsUnsub) commentsUnsub();
+    commentsUnsub = onSnapshot(query(collection(db, "comments"), where("postId", "==", postId), where("approved", "==", true)), s => {
+      if (s.empty) {
+        commentsList.innerHTML = `<div class="comment-empty">No comments yet. Be the first to comment.</div>`;
+        return;
+      }
+      const rows = s.docs.map(d => d.data()).sort((a, b) => (a.time || 0) - (b.time || 0));
+      commentsList.innerHTML = rows.map(c => `
+        <div class="comment-row">
+          <div class="comment-avatar">${initials(c.userName)}</div>
+          <div class="comment-body"><span class="comment-user">${escapeHtml(c.userName)}</span>${escapeHtml(c.text)}</div>
+        </div>
+      `).join('');
+      commentsList.scrollTop = commentsList.scrollHeight;
+    });
+  };
+  function requestAnimFrame(){ requestAnimationFrame(()=> requestModal.classList.add('open')); }
+  window.closeRequest = () => {
+    requestModal.classList.remove('open');
+    setTimeout(()=> requestModal.style.display = 'none', 280);
+    if (commentsUnsub) { commentsUnsub(); commentsUnsub = null; }
+  };
+  window.submitRequest = async () => {
+    const text = userName.value.trim();
+    if (!text || !activePostId) return;
+    commentSendBtn.disabled = true;
+    await addDoc(collection(db, "comments"), {
+      postId: activePostId,
+      userName: userId,
+      text,
+      time: Date.now(),
+      approved: false
+    });
+    userName.value = "";
+    commentSendBtn.disabled = false;
+    pendingNote.innerText = "Your comment is awaiting admin approval.";
+    setTimeout(() => { pendingNote.innerText = ""; }, 3500);
+  };
+
+  window.toggleAction = async (id, field) => {
+    const isPresent = userData[field]?.includes(id);
+    await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
+  };
+
+  const closeAll = () => {
+    sidebar.classList.remove("open");
+    notiPane.classList.remove("open");
+    overlay.style.display = "none";
+  };
+
+  const loadApp = () => {
+    onSnapshot(doc(db, "users", userId), s => {
+      userData = s.data() || { liked: [], saved: [] };
+      render();
+    });
+    onSnapshot(collection(db, "reels"), s => {
+      allReels = s.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    });
+    onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
+      notiDot.style.display = s.empty ? "none" : "block";
+      notiList.innerHTML = s.empty
+        ? `<div class="noti-empty">No notifications yet</div>`
+        : s.docs.map(d => `
+          <div class="noti-card">
+            <div class="noti-icon"><i class="fa-solid fa-bolt"></i></div>
+            <div>
+              <div class="noti-title">${d.data().title || ''}</div>
+              <div class="noti-msg">${d.data().msg || ''}</div>
+            </div>
+          </div>`).join('');
+    });
+  };
+
+  const switchMode = (mode, btnId) => {
+    currentMode = mode;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(btnId).classList.add('active');
+    closeAll();
+    container.scrollTop = 0;
+    render();
+  };
+
+  navHome.onclick = () => switchMode("home", "navHome");
+  navLiked.onclick = () => switchMode("liked", "navLiked");
+  navSaved.onclick = () => switchMode("saved", "navSaved");
+
+  overlay.onclick = closeAll;
+  menuToggle.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
+  notiToggle.onclick = () => { notiPane.classList.add("open"); overlay.style.display = "block"; notiDot.style.display = "none"; };
+  navLogout.onclick = () => { localStorage.clear(); location.reload(); };
+
+  loginBtn.onclick = async () => {
+    const val = mobileInput.value.trim();
+    loginError.style.display = 'none';
+    if (!val) {
+      loginError.textContent = "Please enter your mobile number.";
+      loginError.style.display = 'block';
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Logging in...";
+
+    try {
+      userId = val;
+      await setDoc(doc(db, "users", userId), { liked: [], saved: [], registeredAt: Date.now() }, { merge: true });
+      localStorage.setItem("userId", userId);
+      login.style.display = "none";
+      loadApp();
+    } catch (err) {
+      console.error("Login failed:", err);
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Log in";
+      if (err.code === 'permission-denied') {
+        loginError.textContent = "Login blocked by Firestore security rules. Open your Firebase Console → Firestore → Rules and allow writes to the 'users' collection.";
+      } else if (err.code === 'unavailable' || !navigator.onLine) {
+        loginError.textContent = "Can't reach the server. Please check your internet connection and try again.";
+      } else {
+        loginError.textContent = "Something went wrong: " + (err.message || err.code || "unknown error");
+      }
+      loginError.style.display = 'block';
+    }
+  };
+
+  if (userId) { login.style.display = "none"; loadApp(); }
+</script>
+</body>
+</html>
