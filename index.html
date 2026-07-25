@@ -91,13 +91,34 @@
     .chevron-hint { color: rgba(255,255,255,0.65); font-size: 15px; animation: chevbounce 1.8s ease-in-out infinite; }
     @keyframes chevbounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
 
-    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #000; border-top: 1px solid rgba(255,255,255,0.06); display: flex; padding: 10px 8px max(10px, env(safe-area-inset-bottom)); }
+    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1005; background: #000; border-top: 1px solid rgba(255,255,255,0.08); display: flex; padding: 10px 8px max(10px, env(safe-area-inset-bottom)); box-shadow: 0 -6px 24px rgba(0,0,0,0.5); }
     .bn-item { flex: 1; display: flex; align-items: center; justify-content: center; padding: 8px 0; color: rgba(255,255,255,0.45); font-size: 21px; cursor: pointer; transition: color .15s, transform .1s; }
     .bn-item.active { color: white; }
     .bn-item:active { transform: scale(0.9); }
 
-    #requestModal, #commentModal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.72); backdrop-filter: blur(12px); display: none; }
+    /* PROFILE CARD (sidebar) */
+    .profile-card { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+    .profile-avatar { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 23px; color: rgba(255,255,255,0.75); flex-shrink: 0; }
+    .profile-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.4); font-weight: 700; margin-bottom: 3px; }
+    .profile-number { font-size: 16.5px; font-weight: 800; }
+    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0 20px; }
+
+    #requestModal, #commentModal { position: fixed; inset: 0; z-index: 2200; background: rgba(0,0,0,0.72); backdrop-filter: blur(12px); display: none; }
     #requestModal { justify-content: center; align-items: center; }
+
+    /* STORY DETAIL */
+    .story-modal { position: fixed; inset: 0; z-index: 2100; background: #050505; display: none; transform: translateY(100%); transition: transform 0.35s cubic-bezier(.25,1,.4,1); }
+    .story-modal.open { transform: translateY(0); }
+    .story-sheet { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .story-hero { position: relative; height: 38vh; background: #111; }
+    .story-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .story-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.15), rgba(5,5,5,1)); }
+    .story-back { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: white; z-index: 2; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); }
+    .story-back:active { transform: scale(0.9); }
+    .story-body { padding: 20px 22px max(40px, env(safe-area-inset-bottom)); position: relative; }
+    .story-headline { font-size: 25px; font-weight: 800; line-height: 1.3; margin: 10px 0 6px; }
+    .story-meta { font-size: 12px; color: rgba(255,255,255,0.42); font-weight: 700; margin-bottom: 20px; letter-spacing: 0.02em; }
+    .story-content { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.86); white-space: pre-line; margin-bottom: 28px; }
 
     #commentModal { align-items: flex-end; justify-content: center; }
     .comment-sheet { width: 100%; max-width: 480px; height: 72vh; background: #0b0b0e; border: 1px solid var(--glass-border); border-bottom: none; border-radius: 26px 26px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.32s cubic-bezier(.25,1,.4,1); }
@@ -160,10 +181,34 @@
     </div>
   </div>
 
+  <div id="storyModal" class="story-modal">
+    <div class="story-sheet">
+      <div class="story-hero">
+        <img id="storyImg" src="">
+        <div class="story-back" onclick="closeStory()"><i class="fa-solid fa-arrow-left"></i></div>
+      </div>
+      <div class="story-body">
+        <span class="category-pill" id="storyCategory"></span>
+        <h1 class="story-headline" id="storyHeadline"></h1>
+        <p class="story-meta" id="storyMeta"></p>
+        <div class="story-content" id="storyContent"></div>
+        <button class="read-story-btn" onclick="openRequestFromStory()">Send Request</button>
+      </div>
+    </div>
+  </div>
+
   <div id="overlay"></div>
 
   <div id="sidebar" class="sidebar">
-    <div class="nav-item text-rose-500 mt-4" id="navLogout"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Logout</div>
+    <div class="profile-card">
+      <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
+      <div>
+        <p class="profile-label">Mobile Number</p>
+        <p class="profile-number" id="profileNumber">—</p>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="nav-item text-rose-500" id="navLogout"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Logout</div>
   </div>
 
   <div id="notiPane" class="noti-pane">
@@ -272,7 +317,7 @@
             <p class="headline">${escapeHtml(item.title)}</p>
             ${item.description ? `<p class="subtext">${escapeHtml(item.description)}</p>` : ''}
             <div class="cta-row">
-              <button class="read-story-btn" onclick="openRequest('${escapeHtml(item.title)}')">Read Story</button>
+              <button class="read-story-btn" onclick="openStory('${item.id}')">Read Story</button>
               <i class="fa-solid fa-chevron-down chevron-hint"></i>
             </div>
           </div>
@@ -297,6 +342,26 @@
         userName.value = "";
         closeRequest();
     };
+
+    // STORY DETAIL
+    let activeStoryItem = null;
+    window.openStory = (id) => {
+      const item = allReels.find(r => r.id === id);
+      if (!item) return;
+      activeStoryItem = item;
+      storyImg.src = item.image;
+      storyCategory.innerText = item.category || 'Feed';
+      storyHeadline.innerText = item.title;
+      storyMeta.innerText = (item.category || 'Feed') + ' · CurrentSwipe';
+      storyContent.innerText = item.content || item.description || 'The full write-up for this story isn\'t published yet. Tap Send Request below and we\'ll get more details over to you.';
+      storyModal.style.display = 'block';
+      requestAnimationFrame(() => storyModal.classList.add('open'));
+    };
+    window.closeStory = () => {
+      storyModal.classList.remove('open');
+      setTimeout(() => { storyModal.style.display = 'none'; }, 350);
+    };
+    window.openRequestFromStory = () => { if (activeStoryItem) openRequest(activeStoryItem.title); };
 
     // SHARE
     window.sharePost = async (title) => {
@@ -412,7 +477,7 @@
     bnHome.onclick = () => switchMode("home", "bnHome");
     bnExplore.onclick = () => switchMode("liked", "bnExplore");
     bnSaved.onclick = () => switchMode("saved", "bnSaved");
-    bnProfile.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
+    bnProfile.onclick = () => { profileNumber.innerText = userId || '—'; sidebar.classList.add("open"); overlay.style.display = "block"; };
 
     overlay.onclick = closeAll;
     navLogout.onclick = () => { localStorage.clear(); location.reload(); };
