@@ -94,6 +94,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // (orderBy/query still used by Reels & Requests tabs above — untouched)
 
     const pass = prompt("Password:");
     if(pass === "1997") document.getElementById('adminMain').style.display = 'block'; else location.reload();
@@ -139,21 +140,42 @@
     });
 
     // COMMENTS MGMT
-    // Assumes comment docs look like: { postId, postTitle, userName, commentText, approved: false, time }
-    onSnapshot(query(collection(db, "comments"), orderBy("time", "desc")), s => {
-      const pending = s.docs.filter(d => !d.data().approved);
+    // NOTE: no orderBy() here on purpose — Firestore's orderBy() silently excludes
+    // any document missing that exact field, which is the most common reason
+    // comments "disappear" from an admin view even though they exist in the DB.
+    // We fetch everything on the collection and sort/normalize client-side instead.
+    onSnapshot(collection(db, "comments"), s => {
+      const getTime = c => c.time || c.timestamp || c.createdAt || c.date || 0;
+      const getText = c => c.commentText || c.text || c.comment || c.message || '';
+      const getUser = c => c.userName || c.name || c.user || c.username || 'Unknown';
+      const getPost = c => c.postTitle || c.postName || c.postId || c.reelTitle || '';
+
+      const docs = s.docs.slice().sort((a, b) => {
+        const ta = new Date(getTime(a.data())).getTime() || 0;
+        const tb = new Date(getTime(b.data())).getTime() || 0;
+        return tb - ta;
+      });
+
+      const pending = docs.filter(d => !d.data().approved);
       document.getElementById('pendingCount').textContent = pending.length ? `(${pending.length})` : '';
 
-      commentTableList.innerHTML = s.docs.map(d => {
+      if (docs.length === 0) {
+        commentTableList.innerHTML = `<tr><td colspan="6" class="p-4 text-slate-500 text-xs">No comments found in the "comments" collection yet.</td></tr>`;
+        return;
+      }
+
+      commentTableList.innerHTML = docs.map(d => {
         const c = d.data();
         const isApproved = !!c.approved;
+        const t = getTime(c);
+        const dateStr = t ? new Date(t).toLocaleDateString() : '—';
         return `
         <tr class="border-b border-white/5 hover:bg-white/5 transition">
           <td class="p-4">${isApproved ? '<span class="badge-approved">APPROVED</span>' : '<span class="badge-pending">PENDING</span>'}</td>
-          <td class="p-4 font-bold text-cyan-400">${c.userName || ''}</td>
-          <td class="p-4 text-xs italic">${c.postTitle || c.postId || ''}</td>
-          <td class="p-4 text-xs max-w-xs truncate">${c.commentText || ''}</td>
-          <td class="p-4 text-slate-500 text-[10px]">${c.time ? new Date(c.time).toLocaleDateString() : ''}</td>
+          <td class="p-4 font-bold text-cyan-400">${getUser(c)}</td>
+          <td class="p-4 text-xs italic">${getPost(c)}</td>
+          <td class="p-4 text-xs max-w-xs truncate">${getText(c)}</td>
+          <td class="p-4 text-slate-500 text-[10px]">${dateStr}</td>
           <td class="p-4 flex gap-3">
             ${!isApproved ? `<button onclick="approveComment('${d.id}')" class="text-emerald-500 text-xs font-bold">Approve</button>` : ''}
             <button onclick="delDoc('comments','${d.id}')" class="text-rose-500 text-xs">Delete</button>
