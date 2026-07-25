@@ -92,6 +92,22 @@
     .bn-item.active { color: white; }
     .bn-item:active { transform: scale(0.9); }
 
+    /* GRID VIEW (Liked / Saved) */
+    .grid-container { position: fixed; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #000; z-index: 10; display: none; }
+    .grid-header { padding: max(22px, env(safe-area-inset-top)) 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .grid-header h2 { font-size: 20px; font-weight: 800; margin: 0; }
+    .grid-header p { font-size: 12.5px; color: rgba(255,255,255,0.4); font-weight: 600; margin: 4px 0 0; }
+    .grid-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5px; padding: 2.5px; padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .grid-item { position: relative; aspect-ratio: 3 / 4; overflow: hidden; cursor: pointer; background: #111; }
+    .grid-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .grid-item::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 55%, rgba(0,0,0,0.75) 100%); }
+    .grid-item:active img { transform: scale(1.04); }
+    .grid-item img { transition: transform .15s ease; }
+    .grid-badge { position: absolute; bottom: 7px; left: 7px; z-index: 2; display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
+    .grid-cap { position: absolute; bottom: 24px; left: 7px; right: 7px; z-index: 2; font-size: 10.5px; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .grid-empty { grid-column: 1 / -1; padding: 90px 24px; text-align: center; color: rgba(255,255,255,0.35); }
+    .grid-empty i { font-size: 30px; margin-bottom: 12px; display: block; }
+
     /* PROFILE CARD (sidebar) */
     .profile-card { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
     .profile-avatar { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 23px; color: rgba(255,255,255,0.75); flex-shrink: 0; }
@@ -214,6 +230,14 @@
 
   <div id="container"></div>
 
+  <div id="gridContainer" class="grid-container">
+    <div class="grid-header">
+      <h2 id="gridTitle">Liked Reels</h2>
+      <p id="gridSubtitle">0 items</p>
+    </div>
+    <div id="gridGrid" class="grid-grid"></div>
+  </div>
+
   <div class="bottom-nav">
     <div class="bn-item active" id="bnHome"><i class="fa-solid fa-house"></i></div>
     <div class="bn-item" id="bnExplore"><i class="fa-solid fa-compass"></i></div>
@@ -262,10 +286,20 @@
     const approvedCommentCount = (reelId) => allComments.filter(c => c.postId === reelId && c.approved).length;
 
     const render = () => {
-      let data = allReels;
-      if(currentMode === "liked") data = allReels.filter(r => userData.liked?.includes(r.id));
-      if(currentMode === "saved") data = allReels.filter(r => userData.saved?.includes(r.id));
+      if (currentMode !== "home") {
+        container.style.display = "none";
+        gridContainer.style.display = "block";
+        renderGrid();
+        if (activeCommentReelId) renderComments();
+        return;
+      }
+      container.style.display = "block";
+      gridContainer.style.display = "none";
+      renderFeed(allReels);
+      if (activeCommentReelId) renderComments();
+    };
 
+    const renderFeed = (data) => {
       container.innerHTML = data.length ? data.map(item => `
         <div class="reel">
           <img src="${item.image}" ondblclick="burstLike(this,'${item.id}')">
@@ -314,8 +348,23 @@
           </div>
         </div>
       `).join('') : `<div class="h-screen flex items-center justify-center text-slate-500 text-sm font-medium">Nothing here yet</div>`;
+    };
 
-      if (activeCommentReelId) renderComments();
+    const renderGrid = () => {
+      const data = currentMode === "liked"
+        ? allReels.filter(r => userData.liked?.includes(r.id))
+        : allReels.filter(r => userData.saved?.includes(r.id));
+
+      gridTitle.innerText = currentMode === "liked" ? "Liked Reels" : "Saved Items";
+      gridSubtitle.innerText = data.length + (data.length === 1 ? " item" : " items");
+
+      gridGrid.innerHTML = data.length ? data.map(item => `
+        <div class="grid-item" onclick="openStory('${item.id}')">
+          <img src="${item.image}">
+          <p class="grid-cap">${escapeHtml(item.title)}</p>
+          <div class="grid-badge"><i class="fa-solid ${currentMode === 'liked' ? 'fa-heart' : 'fa-bookmark'}" style="color:${currentMode === 'liked' ? '#f43f5e' : '#f59e0b'}"></i></div>
+        </div>
+      `).join('') : `<div class="grid-empty"><i class="fa-regular ${currentMode === 'liked' ? 'fa-heart' : 'fa-bookmark'}"></i>${currentMode === "liked" ? "No liked reels yet" : "No saved items yet"}</div>`;
     };
 
     // REQUEST SYSTEM
@@ -452,6 +501,7 @@
         document.getElementById(btnId).classList.add('active');
         closeAll();
         container.scrollTop = 0;
+        gridContainer.scrollTop = 0;
         render();
     };
 
