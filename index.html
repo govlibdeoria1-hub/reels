@@ -15,6 +15,7 @@
       --glass-border: rgba(255, 255, 255, 0.14);
       --danger: #f43f5e;
       --gold: #f59e0b;
+      --pill-blue: #2563eb;
     }
     * { box-sizing: border-box; }
     body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; color: white; -webkit-font-smoothing: antialiased; }
@@ -25,7 +26,6 @@
     .login-card input:focus { border-color: var(--secondary); }
     .login-card button:active { transform: scale(0.97); }
 
-    /* SMOOTH SWIPE CONFIG */
     #container {
         height: 100vh;
         overflow-y: scroll;
@@ -47,18 +47,21 @@
         overflow: hidden;
     }
     .reel img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
-    .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 22%, transparent 62%, rgba(0,0,0,0.92) 100%); pointer-events: none; }
+    .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 24%, transparent 55%, rgba(0,0,0,0.95) 100%); pointer-events: none; }
 
-    /* HEART BURST */
     .heart-burst { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 96px; color: #fff; text-shadow: 0 6px 30px rgba(0,0,0,0.5); pointer-events: none; z-index: 60; animation: burst 0.75s cubic-bezier(.2,1.4,.4,1) forwards; }
     @keyframes burst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1;} 35% { transform: translate(-50%,-50%) scale(1.15); opacity: 1;} 100% { transform: translate(-50%,-50%) scale(1); opacity: 0;} }
 
-    /* UI ELEMENTS */
-    .nav-trigger, .noti-trigger { position: fixed; top: max(22px, env(safe-area-inset-top)); z-index: 999; width: 46px; height: 46px; background: rgba(20,20,25,0.55); backdrop-filter: blur(14px); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; transition: background .15s; }
-    .nav-trigger:active, .noti-trigger:active { background: rgba(255,255,255,0.15); }
-    .nav-trigger { left: 20px; }
-    .noti-trigger { right: 20px; }
-    .noti-dot { position: absolute; top: 10px; right: 10px; width: 9px; height: 9px; background: var(--danger); border-radius: 50%; display: none; box-shadow: 0 0 0 2px rgba(20,20,25,0.55); }
+    .top-bar { position: absolute; top: 0; left: 0; right: 0; z-index: 80; padding: max(14px, env(safe-area-inset-top)) 18px 40px; background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent); }
+    .story-track { display: flex; gap: 6px; margin-bottom: 14px; }
+    .story-seg { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.28); overflow: hidden; }
+    .story-seg.done { background: rgba(255,255,255,0.75); }
+    .story-seg.active { background: rgba(255,255,255,0.95); }
+    .brand-row { display: flex; align-items: center; justify-content: space-between; }
+    .brand-name { font-weight: 800; font-size: 21px; letter-spacing: -0.02em; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+    .search-btn { position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; cursor: pointer; }
+    .search-btn:active { opacity: 0.6; }
+    .noti-dot { position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; display: none; box-shadow: 0 0 0 2px #000; }
 
     #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 997; display: none; }
     .sidebar, .noti-pane { position: fixed; top: 0; height: 100%; background: #0a0a0c; z-index: 998; transition: 0.32s cubic-bezier(.25,1,.4,1); border: 1px solid var(--glass-border); }
@@ -66,28 +69,36 @@
     .sidebar.open { left: 0; }
     .noti-pane { right: -350px; width: 320px; padding: 100px 20px 24px; }
     .noti-pane.open { right: 0; }
-
-    /* ACTIONS (Instagram-style right rail) */
-    .actions { position: absolute; right: 12px; bottom: 110px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 50; }
-    .action-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-    .action-circle { width: 50px; height: 50px; background: rgba(255,255,255,0.12); backdrop-filter: blur(20px); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; font-size: 21px; transition: transform 0.12s ease; }
-    .action-circle:active { transform: scale(0.88); }
-    .action-circle.liked { color: var(--danger); border-color: rgba(244,63,94,0.5); background: rgba(244,63,94,0.12); }
-    .action-circle.saved { color: var(--gold); border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.12); }
-    .btn-req { background: linear-gradient(135deg, var(--secondary), var(--primary)); color: white; border: none; }
-    .action-count { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.85); text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-
-    .caption-block { position: absolute; bottom: 34px; left: 20px; right: 78px; pointer-events: none; }
-    .caption-avatar { width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; margin-right: 10px; vertical-align: middle; flex-shrink: 0; }
-
     .nav-item { display: flex; align-items: center; gap: 15px; padding: 15px 16px; border-radius: 16px; color: #7c8494; cursor: pointer; margin-bottom: 6px; font-weight: 600; font-size: 14.5px; transition: background .15s, color .15s; }
     .nav-item.active { background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--glass-border); }
     .nav-item:active { background: rgba(255,255,255,0.14); }
 
+    .actions { position: absolute; right: 14px; bottom: 152px; display: flex; flex-direction: column; align-items: center; gap: 16px; z-index: 50; }
+    .action-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .action-square { width: 46px; height: 46px; background: rgba(0,0,0,0.38); backdrop-filter: blur(14px); border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.08); cursor: pointer; font-size: 19px; transition: transform 0.12s ease; }
+    .action-square:active { transform: scale(0.88); }
+    .action-square.liked { color: var(--danger); }
+    .action-square.saved { color: var(--gold); }
+    .action-count { font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,0.9); text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+
+    .caption-block { position: absolute; bottom: 84px; left: 20px; right: 78px; }
+    .category-pill { display: inline-block; background: var(--pill-blue); color: white; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 6px 13px; border-radius: 999px; margin-bottom: 12px; }
+    .headline { font-size: 22px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; text-shadow: 0 2px 12px rgba(0,0,0,0.45); margin-bottom: 8px; }
+    .subtext { font-size: 14px; color: rgba(255,255,255,0.82); line-height: 1.5; margin-bottom: 18px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .cta-row { display: flex; align-items: center; gap: 12px; }
+    .read-story-btn { background: white; color: #0a0a0c; font-weight: 800; font-size: 14.5px; padding: 13px 26px; border-radius: 999px; border: none; cursor: pointer; }
+    .read-story-btn:active { transform: scale(0.97); }
+    .chevron-hint { color: rgba(255,255,255,0.65); font-size: 15px; animation: chevbounce 1.8s ease-in-out infinite; }
+    @keyframes chevbounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+
+    .bottom-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 900; background: #000; border-top: 1px solid rgba(255,255,255,0.06); display: flex; padding: 10px 8px max(10px, env(safe-area-inset-bottom)); }
+    .bn-item { flex: 1; display: flex; align-items: center; justify-content: center; padding: 8px 0; color: rgba(255,255,255,0.45); font-size: 21px; cursor: pointer; transition: color .15s, transform .1s; }
+    .bn-item.active { color: white; }
+    .bn-item:active { transform: scale(0.9); }
+
     #requestModal, #commentModal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.72); backdrop-filter: blur(12px); display: none; }
     #requestModal { justify-content: center; align-items: center; }
 
-    /* COMMENT SHEET */
     #commentModal { align-items: flex-end; justify-content: center; }
     .comment-sheet { width: 100%; max-width: 480px; height: 72vh; background: #0b0b0e; border: 1px solid var(--glass-border); border-bottom: none; border-radius: 26px 26px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.32s cubic-bezier(.25,1,.4,1); }
     #commentModal.open .comment-sheet { transform: translateY(0); }
@@ -103,8 +114,7 @@
     .send-btn:active:not(:disabled) { transform: scale(0.9); }
     .pending-badge { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold); background: rgba(245,158,11,0.14); border: 1px solid rgba(245,158,11,0.35); padding: 2px 7px; border-radius: 99px; margin-left: 8px; }
 
-    /* TOAST */
-    #toastHost { position: fixed; bottom: max(28px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+    #toastHost { position: fixed; bottom: max(84px, calc(env(safe-area-inset-bottom) + 84px)); left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
     .toast { background: rgba(20,20,24,0.92); border: 1px solid var(--glass-border); backdrop-filter: blur(16px); padding: 12px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px -8px rgba(0,0,0,0.6); animation: toastIn .25s ease, toastOut .25s ease 1.8s forwards; }
     @keyframes toastIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
     @keyframes toastOut { to { opacity:0; transform: translateY(-6px);} }
@@ -134,7 +144,6 @@
     </div>
   </div>
 
-  <!-- COMMENT SHEET -->
   <div id="commentModal">
     <div class="comment-sheet">
       <div class="drag-handle"></div>
@@ -151,15 +160,10 @@
     </div>
   </div>
 
-  <div class="nav-trigger" id="menuToggle"><i class="fa-solid fa-bars-staggered"></i></div>
-  <div class="noti-trigger" id="notiToggle"><i class="fa-solid fa-bell"></i><div class="noti-dot" id="notiDot"></div></div>
   <div id="overlay"></div>
 
   <div id="sidebar" class="sidebar">
-    <div class="nav-item active" id="navHome"><i class="fa-solid fa-bolt w-4 text-center"></i> Home Feed</div>
-    <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart w-4 text-center"></i> Liked Reels</div>
-    <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark w-4 text-center"></i> Saved Items</div>
-    <div class="nav-item text-rose-500 mt-16" id="navLogout"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Logout</div>
+    <div class="nav-item text-rose-500 mt-4" id="navLogout"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Logout</div>
   </div>
 
   <div id="notiPane" class="noti-pane">
@@ -168,6 +172,14 @@
   </div>
 
   <div id="container"></div>
+
+  <div class="bottom-nav">
+    <div class="bn-item active" id="bnHome"><i class="fa-solid fa-house"></i></div>
+    <div class="bn-item" id="bnExplore"><i class="fa-solid fa-compass"></i></div>
+    <div class="bn-item" id="bnSaved"><i class="fa-regular fa-square-play"></i></div>
+    <div class="bn-item" id="bnProfile"><i class="fa-regular fa-user"></i></div>
+  </div>
+
   <div id="toastHost"></div>
 
   <script type="module">
@@ -217,30 +229,51 @@
         <div class="reel">
           <img src="${item.image}" ondblclick="burstLike(this,'${item.id}')">
           <div class="vignette"></div>
-          <div class="caption-block">
-            <p class="text-white font-bold text-[15px] drop-shadow-md leading-snug"><span class="caption-avatar">${initialOf(item.title)}</span>${escapeHtml(item.title)}</p>
+
+          <div class="top-bar">
+            <div class="story-track">
+              <div class="story-seg done"></div>
+              <div class="story-seg active"></div>
+              <div class="story-seg"></div>
+            </div>
+            <div class="brand-row">
+              <span class="brand-name">CurrentSwipe</span>
+              <div class="search-btn" onclick="openNotis()"><i class="fa-solid fa-magnifying-glass"></i><div class="noti-dot" id="notiDot"></div></div>
+            </div>
           </div>
+
           <div class="actions">
             <div class="action-item">
-              <div class="action-circle ${userData.liked?.includes(item.id) ? 'liked' : ''}" onclick="toggleAction('${item.id}', 'liked')">
+              <div class="action-square ${userData.liked?.includes(item.id) ? 'liked' : ''}" onclick="toggleAction('${item.id}', 'liked')">
                 <i class="fa-solid fa-heart"></i>
               </div>
+              <span class="action-count">${formatCount((item.likeBase||0) + (userData.liked?.includes(item.id) ? 1 : 0))}</span>
             </div>
             <div class="action-item">
-              <div class="action-circle" onclick="openComments('${item.id}')">
+              <div class="action-square" onclick="openComments('${item.id}')">
                 <i class="fa-solid fa-comment-dots"></i>
               </div>
               <span class="action-count">${formatCount(approvedCommentCount(item.id))}</span>
             </div>
             <div class="action-item">
-              <div class="action-circle ${userData.saved?.includes(item.id) ? 'saved' : ''}" onclick="toggleAction('${item.id}', 'saved')">
-                <i class="fa-solid fa-bookmark"></i>
+              <div class="action-square" onclick="sharePost('${escapeHtml(item.title)}')">
+                <i class="fa-solid fa-share"></i>
               </div>
             </div>
             <div class="action-item">
-              <div class="action-circle btn-req" onclick="openRequest('${escapeHtml(item.title)}')">
-                <i class="fa-solid fa-paper-plane"></i>
+              <div class="action-square ${userData.saved?.includes(item.id) ? 'saved' : ''}" onclick="toggleAction('${item.id}', 'saved')">
+                <i class="fa-solid fa-bookmark"></i>
               </div>
+            </div>
+          </div>
+
+          <div class="caption-block">
+            <span class="category-pill">${escapeHtml(item.category || 'Feed')}</span>
+            <p class="headline">${escapeHtml(item.title)}</p>
+            ${item.description ? `<p class="subtext">${escapeHtml(item.description)}</p>` : ''}
+            <div class="cta-row">
+              <button class="read-story-btn" onclick="openRequest('${escapeHtml(item.title)}')">Read Story</button>
+              <i class="fa-solid fa-chevron-down chevron-hint"></i>
             </div>
           </div>
         </div>
@@ -263,6 +296,16 @@
         showToast("Request sent");
         userName.value = "";
         closeRequest();
+    };
+
+    // SHARE
+    window.sharePost = async (title) => {
+      const shareData = { title, text: title, url: location.href };
+      if (navigator.share) {
+        try { await navigator.share(shareData); } catch (e) {}
+      } else {
+        try { await navigator.clipboard.writeText(location.href); showToast("Link copied"); } catch (e) { showToast("Unable to share"); }
+      }
     };
 
     // LIKE / SAVE
@@ -335,6 +378,8 @@
       overlay.style.display = "none";
     };
 
+    window.openNotis = () => { notiPane.classList.add("open"); overlay.style.display = "block"; document.querySelectorAll('#notiDot').forEach(d => d.style.display = "none"); };
+
     const loadApp = () => {
       onSnapshot(doc(db, "users", userId), s => {
         userData = s.data() || {liked:[], saved:[]};
@@ -349,28 +394,27 @@
         render();
       });
       onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
-        notiDot.style.display = s.empty ? "none" : "block";
+        document.querySelectorAll('#notiDot').forEach(d => d.style.display = s.empty ? "none" : "block");
         notiList.innerHTML = s.docs.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${escapeHtml(d.data().title)}</p><p class="text-xs opacity-60">${escapeHtml(d.data().msg)}</p></div>`).join('');
       });
     };
 
-    // MENU SWITCHING
+    // BOTTOM NAV SWITCHING
     const switchMode = (mode, btnId) => {
         currentMode = mode;
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.bn-item').forEach(el => el.classList.remove('active'));
         document.getElementById(btnId).classList.add('active');
         closeAll();
         container.scrollTop = 0;
         render();
     };
 
-    navHome.onclick = () => switchMode("home", "navHome");
-    navLiked.onclick = () => switchMode("liked", "navLiked");
-    navSaved.onclick = () => switchMode("saved", "navSaved");
+    bnHome.onclick = () => switchMode("home", "bnHome");
+    bnExplore.onclick = () => switchMode("liked", "bnExplore");
+    bnSaved.onclick = () => switchMode("saved", "bnSaved");
+    bnProfile.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
 
     overlay.onclick = closeAll;
-    menuToggle.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
-    notiToggle.onclick = () => { notiPane.classList.add("open"); overlay.style.display = "block"; notiDot.style.display = "none"; };
     navLogout.onclick = () => { localStorage.clear(); location.reload(); };
 
     loginBtn.onclick = async () => {
