@@ -2,85 +2,151 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Current Swipe | Smooth Flow</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    :root { --primary: #6366f1; --secondary: #06b6d4; --glass-border: rgba(255, 255, 255, 0.15); }
+    :root {
+      --primary: #6366f1;
+      --secondary: #06b6d4;
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --danger: #f43f5e;
+      --gold: #f59e0b;
+    }
+    * { box-sizing: border-box; }
     body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; color: white; -webkit-font-smoothing: antialiased; }
 
-    #login { position: fixed; inset: 0; z-index: 10000; background: radial-gradient(circle at top right, #1e1b4b, #000); display: flex; justify-content: center; align-items: center; }
-    .login-card { width: 90%; max-width: 380px; padding: 45px 30px; background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 40px; text-align: center; }
+    #login { position: fixed; inset: 0; z-index: 10000; background: radial-gradient(circle at 20% 0%, #2e1065 0%, #000 55%), radial-gradient(circle at 100% 100%, #083344 0%, transparent 50%); display: flex; justify-content: center; align-items: center; }
+    .login-card { width: 90%; max-width: 380px; padding: 48px 32px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 32px; text-align: center; box-shadow: 0 30px 80px -20px rgba(99,102,241,0.35); }
+    .login-glyph { width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 10px 30px -8px rgba(6,182,212,0.6); }
+    .login-card input:focus { border-color: var(--secondary); }
+    .login-card button:active { transform: scale(0.97); }
 
     /* SMOOTH SWIPE CONFIG */
-    #container { 
-        height: 100vh; 
-        overflow-y: scroll; 
-        scroll-snap-type: y mandatory; 
+    #container {
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
         scroll-behavior: smooth;
-        scrollbar-width: none; 
+        scrollbar-width: none;
         -ms-overflow-style: none;
-        overscroll-behavior-y: contain; /* Prevents bounce issues */
+        overscroll-behavior-y: contain;
     }
     #container::-webkit-scrollbar { display: none; }
-    
-    .reel { 
-        height: 100vh; 
-        width: 100%; 
-        position: relative; 
-        scroll-snap-align: start; 
-        scroll-snap-stop: always; 
-        will-change: transform; /* Boosts performance */
+
+    .reel {
+        height: 100vh;
+        width: 100%;
+        position: relative;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        will-change: transform;
+        overflow: hidden;
     }
-    .reel img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-    .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.9) 100%); pointer-events: none; }
+    .reel img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
+    .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 22%, transparent 62%, rgba(0,0,0,0.92) 100%); pointer-events: none; }
+
+    /* HEART BURST */
+    .heart-burst { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 96px; color: #fff; text-shadow: 0 6px 30px rgba(0,0,0,0.5); pointer-events: none; z-index: 60; animation: burst 0.75s cubic-bezier(.2,1.4,.4,1) forwards; }
+    @keyframes burst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1;} 35% { transform: translate(-50%,-50%) scale(1.15); opacity: 1;} 100% { transform: translate(-50%,-50%) scale(1); opacity: 0;} }
 
     /* UI ELEMENTS */
-    .nav-trigger, .noti-trigger { position: fixed; top: 25px; z-index: 999; width: 48px; height: 48px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; }
-    .nav-trigger { left: 25px; }
-    .noti-trigger { right: 25px; }
-    .noti-dot { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; background: #f43f5e; border-radius: 50%; display: none; }
+    .nav-trigger, .noti-trigger { position: fixed; top: max(22px, env(safe-area-inset-top)); z-index: 999; width: 46px; height: 46px; background: rgba(20,20,25,0.55); backdrop-filter: blur(14px); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; transition: background .15s; }
+    .nav-trigger:active, .noti-trigger:active { background: rgba(255,255,255,0.15); }
+    .nav-trigger { left: 20px; }
+    .noti-trigger { right: 20px; }
+    .noti-dot { position: absolute; top: 10px; right: 10px; width: 9px; height: 9px; background: var(--danger); border-radius: 50%; display: none; box-shadow: 0 0 0 2px rgba(20,20,25,0.55); }
 
-    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 997; display: none; }
-    .sidebar, .noti-pane { position: fixed; top: 0; height: 100%; background: #0a0a0a; z-index: 998; transition: 0.3s ease; border: 1px solid var(--glass-border); }
-    .sidebar { left: -320px; width: 300px; padding: 100px 24px; }
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 997; display: none; }
+    .sidebar, .noti-pane { position: fixed; top: 0; height: 100%; background: #0a0a0c; z-index: 998; transition: 0.32s cubic-bezier(.25,1,.4,1); border: 1px solid var(--glass-border); }
+    .sidebar { left: -320px; width: 300px; padding: 100px 22px 24px; }
     .sidebar.open { left: 0; }
-    .noti-pane { right: -350px; width: 320px; padding: 100px 20px; }
+    .noti-pane { right: -350px; width: 320px; padding: 100px 20px 24px; }
     .noti-pane.open { right: 0; }
 
-    /* ACTIONS (Z-INDEX FIX) */
-    .actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 15px; z-index: 50; }
-    .action-circle { width: 52px; height: 52px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; font-size: 22px; transition: transform 0.1s; }
-    .action-circle:active { transform: scale(0.9); }
-    .action-circle.liked { color: #f43f5e; border-color: #f43f5e; }
-    .action-circle.saved { color: #f59e0b; border-color: #f59e0b; }
-    .btn-req { background: #06b6d4; color: white; border: none; }
+    /* ACTIONS (Instagram-style right rail) */
+    .actions { position: absolute; right: 12px; bottom: 110px; display: flex; flex-direction: column; align-items: center; gap: 20px; z-index: 50; }
+    .action-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .action-circle { width: 50px; height: 50px; background: rgba(255,255,255,0.12); backdrop-filter: blur(20px); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; font-size: 21px; transition: transform 0.12s ease; }
+    .action-circle:active { transform: scale(0.88); }
+    .action-circle.liked { color: var(--danger); border-color: rgba(244,63,94,0.5); background: rgba(244,63,94,0.12); }
+    .action-circle.saved { color: var(--gold); border-color: rgba(245,158,11,0.5); background: rgba(245,158,11,0.12); }
+    .btn-req { background: linear-gradient(135deg, var(--secondary), var(--primary)); color: white; border: none; }
+    .action-count { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.85); text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
 
-    .nav-item { display: flex; align-items: center; gap: 15px; padding: 16px; border-radius: 18px; color: #64748b; cursor: pointer; margin-bottom: 8px; font-weight: 600; }
-    .nav-item.active { background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--glass-border); }
+    .caption-block { position: absolute; bottom: 34px; left: 20px; right: 78px; pointer-events: none; }
+    .caption-avatar { width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; margin-right: 10px; vertical-align: middle; flex-shrink: 0; }
 
-    #requestModal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; }
+    .nav-item { display: flex; align-items: center; gap: 15px; padding: 15px 16px; border-radius: 16px; color: #7c8494; cursor: pointer; margin-bottom: 6px; font-weight: 600; font-size: 14.5px; transition: background .15s, color .15s; }
+    .nav-item.active { background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--glass-border); }
+    .nav-item:active { background: rgba(255,255,255,0.14); }
+
+    #requestModal, #commentModal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.72); backdrop-filter: blur(12px); display: none; }
+    #requestModal { justify-content: center; align-items: center; }
+
+    /* COMMENT SHEET */
+    #commentModal { align-items: flex-end; justify-content: center; }
+    .comment-sheet { width: 100%; max-width: 480px; height: 72vh; background: #0b0b0e; border: 1px solid var(--glass-border); border-bottom: none; border-radius: 26px 26px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.32s cubic-bezier(.25,1,.4,1); }
+    #commentModal.open .comment-sheet { transform: translateY(0); }
+    .drag-handle { width: 40px; height: 4px; background: rgba(255,255,255,0.25); border-radius: 4px; margin: 12px auto 6px; }
+    .comment-list { flex: 1; overflow-y: auto; padding: 6px 20px; }
+    .comment-row { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .comment-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+    .comment-input-bar { display: flex; align-items: center; gap: 10px; padding: 14px 16px; padding-bottom: max(14px, env(safe-area-inset-bottom)); border-top: 1px solid var(--glass-border); background: #0b0b0e; }
+    .comment-input-bar input { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 999px; padding: 12px 18px; color: white; outline: none; font-size: 14px; }
+    .comment-input-bar input:focus { border-color: var(--secondary); }
+    .send-btn { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--primary)); border: none; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity .15s, transform .1s; }
+    .send-btn:disabled { opacity: 0.35; }
+    .send-btn:active:not(:disabled) { transform: scale(0.9); }
+    .pending-badge { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold); background: rgba(245,158,11,0.14); border: 1px solid rgba(245,158,11,0.35); padding: 2px 7px; border-radius: 99px; margin-left: 8px; }
+
+    /* TOAST */
+    #toastHost { position: fixed; bottom: max(28px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); z-index: 4000; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+    .toast { background: rgba(20,20,24,0.92); border: 1px solid var(--glass-border); backdrop-filter: blur(16px); padding: 12px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px -8px rgba(0,0,0,0.6); animation: toastIn .25s ease, toastOut .25s ease 1.8s forwards; }
+    @keyframes toastIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+    @keyframes toastOut { to { opacity:0; transform: translateY(-6px);} }
   </style>
 </head>
 <body>
 
   <div id="login">
     <div class="login-card">
-      <h1 class="text-3xl font-black mb-6 italic italic">Current<span class="text-cyan-400">Swipe</span></h1>
+      <div class="login-glyph"><i class="fa-solid fa-bolt"></i></div>
+      <h1 class="text-3xl font-black mb-1 italic">Current<span class="text-cyan-400">Swipe</span></h1>
+      <p class="text-xs text-white/40 mb-7 font-medium">Swipe. React. Connect.</p>
       <input id="mobileInput" type="tel" placeholder="Mobile Number" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white outline-none">
-      <button id="loginBtn" class="w-full p-4 bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-2xl font-bold uppercase">Enter App</button>
+      <button id="loginBtn" class="w-full p-4 bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-2xl font-bold uppercase text-sm tracking-wide">Enter App</button>
     </div>
   </div>
 
   <div id="requestModal">
-    <div class="bg-[#111] p-8 border border-white/10 rounded-[35px] w-[90%] max-w-[350px]">
+    <div class="bg-[#111] p-8 border border-white/10 rounded-[32px] w-[90%] max-w-[350px]">
       <h2 class="text-xl font-bold mb-1">Send Request</h2>
       <p id="reqPostName" class="text-cyan-400 text-[10px] mb-6 uppercase font-bold tracking-widest"></p>
       <input id="userName" placeholder="Full Name" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white outline-none">
       <div class="flex gap-2">
-        <button onclick="closeRequest()" class="flex-1 p-4 bg-white/5 rounded-2xl text-sm">Back</button>
+        <button onclick="closeRequest()" class="flex-1 p-4 bg-white/5 rounded-2xl text-sm font-semibold">Back</button>
         <button onclick="submitRequest()" class="flex-1 p-4 bg-cyan-500 rounded-2xl text-sm font-bold">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMENT SHEET -->
+  <div id="commentModal">
+    <div class="comment-sheet">
+      <div class="drag-handle"></div>
+      <div class="flex items-center justify-between px-5 pb-3 border-b border-white/10">
+        <h2 class="text-[15px] font-bold">Comments</h2>
+        <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center cursor-pointer" onclick="closeComments()"><i class="fa-solid fa-xmark text-sm"></i></div>
+      </div>
+      <div id="commentList" class="comment-list"></div>
+      <div class="comment-input-bar">
+        <div class="comment-avatar" id="myAvatar">Y</div>
+        <input id="commentInput" placeholder="Add a comment..." maxlength="280" oninput="onCommentInputChange()">
+        <button class="send-btn" id="sendCommentBtn" disabled onclick="submitComment()"><i class="fa-solid fa-paper-plane text-[15px]"></i></button>
       </div>
     </div>
   </div>
@@ -90,10 +156,10 @@
   <div id="overlay"></div>
 
   <div id="sidebar" class="sidebar">
-    <div class="nav-item active" id="navHome"><i class="fa-solid fa-bolt"></i> Home Feed</div>
-    <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart"></i> Liked Reels</div>
-    <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark"></i> Saved Items</div>
-    <div class="nav-item text-rose-500 mt-20" id="navLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+    <div class="nav-item active" id="navHome"><i class="fa-solid fa-bolt w-4 text-center"></i> Home Feed</div>
+    <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart w-4 text-center"></i> Liked Reels</div>
+    <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark w-4 text-center"></i> Saved Items</div>
+    <div class="nav-item text-rose-500 mt-16" id="navLogout"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Logout</div>
   </div>
 
   <div id="notiPane" class="noti-pane">
@@ -102,15 +168,16 @@
   </div>
 
   <div id="container"></div>
+  <div id="toastHost"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", 
-        authDomain: "reels-f0d24.firebaseapp.com", 
-        projectId: "reels-f0d24" 
+    const firebaseConfig = {
+        apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
+        authDomain: "reels-f0d24.firebaseapp.com",
+        projectId: "reels-f0d24"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -118,7 +185,28 @@
 
     let userId = localStorage.getItem("userId");
     let allReels = [], userData = { liked: [], saved: [] }, activeReqPost = "";
+    let allComments = [], activeCommentReelId = null;
     let currentMode = "home";
+
+    const escapeHtml = (str) => (str || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const initialOf = (str) => (str || "?").trim().charAt(0).toUpperCase() || "?";
+    const formatCount = (n) => n >= 1000 ? (n/1000).toFixed(1).replace(/\.0$/,'') + "k" : String(n);
+    const timeAgo = (ts) => {
+      const s = Math.floor((Date.now() - ts) / 1000);
+      if (s < 60) return "now";
+      if (s < 3600) return Math.floor(s/60) + "m";
+      if (s < 86400) return Math.floor(s/3600) + "h";
+      return Math.floor(s/86400) + "d";
+    };
+    window.showToast = (msg) => {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.innerText = msg;
+      toastHost.appendChild(t);
+      setTimeout(() => t.remove(), 2100);
+    };
+
+    const approvedCommentCount = (reelId) => allComments.filter(c => c.postId === reelId && c.approved).length;
 
     const render = () => {
       let data = allReels;
@@ -127,24 +215,38 @@
 
       container.innerHTML = data.length ? data.map(item => `
         <div class="reel">
-          <img src="${item.image}">
+          <img src="${item.image}" ondblclick="burstLike(this,'${item.id}')">
           <div class="vignette"></div>
-          <div class="absolute bottom-12 left-6 right-20 pointer-events-none">
-            <p class="text-white font-bold text-lg drop-shadow-md">${item.title}</p>
+          <div class="caption-block">
+            <p class="text-white font-bold text-[15px] drop-shadow-md leading-snug"><span class="caption-avatar">${initialOf(item.title)}</span>${escapeHtml(item.title)}</p>
           </div>
           <div class="actions">
-            <div class="action-circle btn-req" onclick="openRequest('${item.title}')">
-              <i class="fa-solid fa-paper-plane"></i>
+            <div class="action-item">
+              <div class="action-circle ${userData.liked?.includes(item.id) ? 'liked' : ''}" onclick="toggleAction('${item.id}', 'liked')">
+                <i class="fa-solid fa-heart"></i>
+              </div>
             </div>
-            <div class="action-circle ${userData.liked?.includes(item.id) ? 'liked' : ''}" onclick="toggleAction('${item.id}', 'liked')">
-              <i class="fa-solid fa-heart"></i>
+            <div class="action-item">
+              <div class="action-circle" onclick="openComments('${item.id}')">
+                <i class="fa-solid fa-comment-dots"></i>
+              </div>
+              <span class="action-count">${formatCount(approvedCommentCount(item.id))}</span>
             </div>
-            <div class="action-circle ${userData.saved?.includes(item.id) ? 'saved' : ''}" onclick="toggleAction('${item.id}', 'saved')">
-              <i class="fa-solid fa-bookmark"></i>
+            <div class="action-item">
+              <div class="action-circle ${userData.saved?.includes(item.id) ? 'saved' : ''}" onclick="toggleAction('${item.id}', 'saved')">
+                <i class="fa-solid fa-bookmark"></i>
+              </div>
+            </div>
+            <div class="action-item">
+              <div class="action-circle btn-req" onclick="openRequest('${escapeHtml(item.title)}')">
+                <i class="fa-solid fa-paper-plane"></i>
+              </div>
             </div>
           </div>
         </div>
-      `).join('') : `<div class="h-screen flex items-center justify-center text-slate-500">Empty List</div>`;
+      `).join('') : `<div class="h-screen flex items-center justify-center text-slate-500 text-sm font-medium">Nothing here yet</div>`;
+
+      if (activeCommentReelId) renderComments();
     };
 
     // REQUEST SYSTEM
@@ -155,18 +257,76 @@
     };
     window.closeRequest = () => requestModal.style.display = 'none';
     window.submitRequest = async () => {
-        const name = userName.value;
+        const name = userName.value.trim();
         if(!name) return;
         await addDoc(collection(db, "requests"), { userName: name, userMobile: userId, postTitle: activeReqPost, time: Date.now() });
-        alert("Request Sent!");
+        showToast("Request sent");
         userName.value = "";
         closeRequest();
     };
 
-    // ACTIONS
+    // LIKE / SAVE
     window.toggleAction = async (id, field) => {
       const isPresent = userData[field]?.includes(id);
       await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
+    };
+
+    window.burstLike = (imgEl, id) => {
+      if (!userData.liked?.includes(id)) toggleAction(id, "liked");
+      const heart = document.createElement("div");
+      heart.className = "heart-burst";
+      heart.innerHTML = '<i class="fa-solid fa-heart"></i>';
+      imgEl.parentElement.appendChild(heart);
+      setTimeout(() => heart.remove(), 750);
+    };
+
+    // COMMENTS
+    window.openComments = (reelId) => {
+      activeCommentReelId = reelId;
+      myAvatar.innerText = initialOf(userId);
+      commentInput.value = "";
+      sendCommentBtn.disabled = true;
+      renderComments();
+      commentModal.style.display = "flex";
+      requestAnimationFrame(() => commentModal.classList.add("open"));
+    };
+    window.closeComments = () => {
+      commentModal.classList.remove("open");
+      setTimeout(() => { commentModal.style.display = "none"; activeCommentReelId = null; }, 300);
+    };
+    window.onCommentInputChange = () => {
+      sendCommentBtn.disabled = commentInput.value.trim().length === 0;
+    };
+    const renderComments = () => {
+      const list = allComments
+        .filter(c => c.postId === activeCommentReelId && (c.approved || c.userMobile === userId))
+        .sort((a,b) => a.time - b.time);
+
+      commentList.innerHTML = list.length ? list.map(c => `
+        <div class="comment-row" style="${c.approved ? '' : 'opacity:0.55;'}">
+          <div class="comment-avatar">${initialOf(c.userName || c.userMobile)}</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-bold">${escapeHtml(c.userName || 'Guest')} ${c.approved ? '' : '<span class="pending-badge">Pending</span>'}</p>
+            <p class="text-[13.5px] text-white/85 mt-0.5 break-words">${escapeHtml(c.text)}</p>
+            <p class="text-[10.5px] text-white/35 mt-1">${timeAgo(c.time)}</p>
+          </div>
+        </div>
+      `).join('') : `<div class="h-full flex flex-col items-center justify-center text-center py-16 text-white/35"><i class="fa-regular fa-comments text-3xl mb-3"></i><p class="text-[13px] font-medium">No comments yet</p><p class="text-[11.5px]">Be the first to say something</p></div>`;
+    };
+    window.submitComment = async () => {
+      const text = commentInput.value.trim();
+      if (!text || !activeCommentReelId) return;
+      sendCommentBtn.disabled = true;
+      await addDoc(collection(db, "comments"), {
+        postId: activeCommentReelId,
+        userName: userId,
+        userMobile: userId,
+        text,
+        time: Date.now(),
+        approved: false
+      });
+      commentInput.value = "";
+      showToast("Comment sent for review");
     };
 
     const closeAll = () => {
@@ -176,27 +336,31 @@
     };
 
     const loadApp = () => {
-      onSnapshot(doc(db, "users", userId), s => { 
-        userData = s.data() || {liked:[], saved:[]}; 
-        render(); 
+      onSnapshot(doc(db, "users", userId), s => {
+        userData = s.data() || {liked:[], saved:[]};
+        render();
       });
-      onSnapshot(collection(db, "reels"), s => { 
-        allReels = s.docs.map(d => ({id:d.id, ...d.data()})); 
-        render(); 
+      onSnapshot(collection(db, "reels"), s => {
+        allReels = s.docs.map(d => ({id:d.id, ...d.data()}));
+        render();
+      });
+      onSnapshot(collection(db, "comments"), s => {
+        allComments = s.docs.map(d => ({id:d.id, ...d.data()}));
+        render();
       });
       onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
         notiDot.style.display = s.empty ? "none" : "block";
-        notiList.innerHTML = s.docs.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${d.data().title}</p><p class="text-xs opacity-60">${d.data().msg}</p></div>`).join('');
+        notiList.innerHTML = s.docs.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${escapeHtml(d.data().title)}</p><p class="text-xs opacity-60">${escapeHtml(d.data().msg)}</p></div>`).join('');
       });
     };
 
-    // MENU SWITCHING LOGIC (THE FIX)
+    // MENU SWITCHING
     const switchMode = (mode, btnId) => {
         currentMode = mode;
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         document.getElementById(btnId).classList.add('active');
         closeAll();
-        container.scrollTop = 0; // Reset scroll to top of new list
+        container.scrollTop = 0;
         render();
     };
 
