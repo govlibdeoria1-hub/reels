@@ -3,182 +3,222 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Current Swipe | Admin Pro</title>
+  <title>Current Swipe | Smooth Flow</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { background: #080808; color: white; font-family: 'Inter', sans-serif; }
-    .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
-    .tab-btn.active { color: #06b6d4; border-bottom: 2px solid #06b6d4; }
-    input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; outline: none; width: 100%; }
-    .badge-pending { background: rgba(251,146,60,0.15); color: #fb923c; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
-    .badge-approved { background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    :root { --primary: #6366f1; --secondary: #06b6d4; --glass-border: rgba(255, 255, 255, 0.15); }
+    body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; color: white; -webkit-font-smoothing: antialiased; }
+
+    #login { position: fixed; inset: 0; z-index: 10000; background: radial-gradient(circle at top right, #1e1b4b, #000); display: flex; justify-content: center; align-items: center; }
+    .login-card { width: 90%; max-width: 380px; padding: 45px 30px; background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 40px; text-align: center; }
+
+    /* SMOOTH SWIPE CONFIG */
+    #container { 
+        height: 100vh; 
+        overflow-y: scroll; 
+        scroll-snap-type: y mandatory; 
+        scroll-behavior: smooth;
+        scrollbar-width: none; 
+        -ms-overflow-style: none;
+        overscroll-behavior-y: contain; /* Prevents bounce issues */
+    }
+    #container::-webkit-scrollbar { display: none; }
+    
+    .reel { 
+        height: 100vh; 
+        width: 100%; 
+        position: relative; 
+        scroll-snap-align: start; 
+        scroll-snap-stop: always; 
+        will-change: transform; /* Boosts performance */
+    }
+    .reel img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.9) 100%); pointer-events: none; }
+
+    /* UI ELEMENTS */
+    .nav-trigger, .noti-trigger { position: fixed; top: 25px; z-index: 999; width: 48px; height: 48px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; }
+    .nav-trigger { left: 25px; }
+    .noti-trigger { right: 25px; }
+    .noti-dot { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; background: #f43f5e; border-radius: 50%; display: none; }
+
+    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 997; display: none; }
+    .sidebar, .noti-pane { position: fixed; top: 0; height: 100%; background: #0a0a0a; z-index: 998; transition: 0.3s ease; border: 1px solid var(--glass-border); }
+    .sidebar { left: -320px; width: 300px; padding: 100px 24px; }
+    .sidebar.open { left: 0; }
+    .noti-pane { right: -350px; width: 320px; padding: 100px 20px; }
+    .noti-pane.open { right: 0; }
+
+    /* ACTIONS (Z-INDEX FIX) */
+    .actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 15px; z-index: 50; }
+    .action-circle { width: 52px; height: 52px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; font-size: 22px; transition: transform 0.1s; }
+    .action-circle:active { transform: scale(0.9); }
+    .action-circle.liked { color: #f43f5e; border-color: #f43f5e; }
+    .action-circle.saved { color: #f59e0b; border-color: #f59e0b; }
+    .btn-req { background: #06b6d4; color: white; border: none; }
+
+    .nav-item { display: flex; align-items: center; gap: 15px; padding: 16px; border-radius: 18px; color: #64748b; cursor: pointer; margin-bottom: 8px; font-weight: 600; }
+    .nav-item.active { background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--glass-border); }
+
+    #requestModal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; }
   </style>
 </head>
-<body class="p-6">
+<body>
 
-  <div id="adminMain" style="display:none;" class="max-w-6xl mx-auto">
-    <header class="flex flex-wrap justify-between items-center mb-8 gap-4 bg-white/5 p-4 rounded-2xl">
-      <h1 class="text-xl font-black">CS<span class="text-cyan-400">ADMIN</span></h1>
-      <div class="flex gap-2">
-        <button onclick="switchTab('reels')" id="tReels" class="tab-btn active px-4 py-2 font-bold text-xs uppercase">Content</button>
-        <button onclick="switchTab('requests')" id="tRequests" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-orange-400">Requests</button>
-        <button onclick="switchTab('comments')" id="tComments" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-yellow-400">Comments <span id="pendingCount" class="ml-1"></span></button>
-        <button onclick="switchTab('users')" id="tUsers" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Users</button>
-        <button onclick="switchTab('notis')" id="tNotis" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Broadcast</button>
-      </div>
-    </header>
-
-    <div id="tabReels" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="glass p-6 h-fit">
-        <h3 class="font-bold mb-4">Add Reel</h3>
-        <input id="imgUrl" placeholder="Image URL" class="mb-3">
-        <input id="title" placeholder="Reel Title" class="mb-3">
-        <button onclick="addReel()" class="w-full bg-cyan-600 p-4 rounded-xl font-bold">Publish</button>
-      </div>
-      <div class="md:col-span-2 glass p-6">
-        <h3 class="font-bold mb-4">Live Feed</h3>
-        <div id="reelGrid" class="grid grid-cols-3 gap-4 h-[500px] overflow-y-auto"></div>
-      </div>
-    </div>
-
-    <div id="tabRequests" style="display:none;" class="glass p-8">
-      <h3 class="font-bold text-xl mb-6 text-orange-400">User Inquiries</h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="border-b border-white/5 text-slate-500">
-            <tr><th class="p-4">Name</th><th class="p-4">Mobile</th><th class="p-4">Post Requested</th><th class="p-4">Date</th><th class="p-4">Action</th></tr>
-          </thead>
-          <tbody id="reqTableList"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tabComments" style="display:none;" class="glass p-8">
-      <h3 class="font-bold text-xl mb-6 text-yellow-400">Comment Moderation</h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="border-b border-white/5 text-slate-500">
-            <tr>
-              <th class="p-4">Status</th>
-              <th class="p-4">User</th>
-              <th class="p-4">Post</th>
-              <th class="p-4">Comment</th>
-              <th class="p-4">Date</th>
-              <th class="p-4">Action</th>
-            </tr>
-          </thead>
-          <tbody id="commentTableList"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="tabUsers" style="display:none;" class="glass p-8">
-      <h3 class="font-bold mb-6">User Database</h3>
-      <table class="w-full text-left text-sm">
-        <thead class="border-b border-white/5 text-slate-500">
-          <tr><th class="p-4">Mobile Number</th><th class="p-4">Join Date</th></tr>
-        </thead>
-        <tbody id="userTableList"></tbody>
-      </table>
-    </div>
-
-    <div id="tabNotis" style="display:none;" class="max-w-lg mx-auto glass p-8">
-        <h3 class="font-bold mb-6">Send Alert</h3>
-        <input id="nTitle" placeholder="Title" class="mb-4">
-        <input id="nMsg" placeholder="Message..." class="mb-4">
-        <button onclick="sendPush()" class="w-full bg-pink-600 p-4 rounded-xl font-bold">Push Notification</button>
+  <div id="login">
+    <div class="login-card">
+      <h1 class="text-3xl font-black mb-6 italic italic">Current<span class="text-cyan-400">Swipe</span></h1>
+      <input id="mobileInput" type="tel" placeholder="Mobile Number" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white outline-none">
+      <button id="loginBtn" class="w-full p-4 bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-2xl font-bold uppercase">Enter App</button>
     </div>
   </div>
 
+  <div id="requestModal">
+    <div class="bg-[#111] p-8 border border-white/10 rounded-[35px] w-[90%] max-w-[350px]">
+      <h2 class="text-xl font-bold mb-1">Send Request</h2>
+      <p id="reqPostName" class="text-cyan-400 text-[10px] mb-6 uppercase font-bold tracking-widest"></p>
+      <input id="userName" placeholder="Full Name" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white outline-none">
+      <div class="flex gap-2">
+        <button onclick="closeRequest()" class="flex-1 p-4 bg-white/5 rounded-2xl text-sm">Back</button>
+        <button onclick="submitRequest()" class="flex-1 p-4 bg-cyan-500 rounded-2xl text-sm font-bold">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-trigger" id="menuToggle"><i class="fa-solid fa-bars-staggered"></i></div>
+  <div class="noti-trigger" id="notiToggle"><i class="fa-solid fa-bell"></i><div class="noti-dot" id="notiDot"></div></div>
+  <div id="overlay"></div>
+
+  <div id="sidebar" class="sidebar">
+    <div class="nav-item active" id="navHome"><i class="fa-solid fa-bolt"></i> Home Feed</div>
+    <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart"></i> Liked Reels</div>
+    <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark"></i> Saved Items</div>
+    <div class="nav-item text-rose-500 mt-20" id="navLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+  </div>
+
+  <div id="notiPane" class="noti-pane">
+    <h2 class="text-xl font-bold mb-6">Recent Alerts</h2>
+    <div id="notiList" class="space-y-4"></div>
+  </div>
+
+  <div id="container"></div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const pass = prompt("Password:");
-    if(pass === "1997") document.getElementById('adminMain').style.display = 'block'; else location.reload();
-
-    const firebaseConfig = { apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", authDomain: "reels-f0d24.firebaseapp.com", projectId: "reels-f0d24" };
-    const db = getFirestore(initializeApp(firebaseConfig));
-
-    window.switchTab = (tab) => {
-      ['Reels', 'Requests', 'Comments', 'Users', 'Notis'].forEach(t => {
-        document.getElementById('tab'+t).style.display = 'none';
-        document.getElementById('t'+t).classList.remove('active');
-      });
-      document.getElementById('tab'+tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
-      document.getElementById('t'+tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", 
+        authDomain: "reels-f0d24.firebaseapp.com", 
+        projectId: "reels-f0d24" 
     };
 
-    // CONTENT MGMT
-    window.addReel = async () => {
-      await addDoc(collection(db, "reels"), { image: imgUrl.value, title: title.value, time: Date.now() });
-      imgUrl.value=''; title.value='';
-    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    onSnapshot(query(collection(db, "reels"), orderBy("time", "desc")), s => {
-      reelGrid.innerHTML = s.docs.map(d => `
-        <div class="bg-white/5 p-2 rounded-xl text-center">
-          <img src="${d.data().image}" class="h-20 w-full object-cover rounded-lg mb-2">
-          <button onclick="delDoc('reels','${d.id}')" class="text-rose-500 text-[10px] font-bold">DELETE</button>
+    let userId = localStorage.getItem("userId");
+    let allReels = [], userData = { liked: [], saved: [] }, activeReqPost = "";
+    let currentMode = "home";
+
+    const render = () => {
+      let data = allReels;
+      if(currentMode === "liked") data = allReels.filter(r => userData.liked?.includes(r.id));
+      if(currentMode === "saved") data = allReels.filter(r => userData.saved?.includes(r.id));
+
+      container.innerHTML = data.length ? data.map(item => `
+        <div class="reel">
+          <img src="${item.image}">
+          <div class="vignette"></div>
+          <div class="absolute bottom-12 left-6 right-20 pointer-events-none">
+            <p class="text-white font-bold text-lg drop-shadow-md">${item.title}</p>
+          </div>
+          <div class="actions">
+            <div class="action-circle btn-req" onclick="openRequest('${item.title}')">
+              <i class="fa-solid fa-paper-plane"></i>
+            </div>
+            <div class="action-circle ${userData.liked?.includes(item.id) ? 'liked' : ''}" onclick="toggleAction('${item.id}', 'liked')">
+              <i class="fa-solid fa-heart"></i>
+            </div>
+            <div class="action-circle ${userData.saved?.includes(item.id) ? 'saved' : ''}" onclick="toggleAction('${item.id}', 'saved')">
+              <i class="fa-solid fa-bookmark"></i>
+            </div>
+          </div>
         </div>
-      `).join('');
-    });
-
-    // REQUESTS MGMT
-    onSnapshot(query(collection(db, "requests"), orderBy("time", "desc")), s => {
-      reqTableList.innerHTML = s.docs.map(d => `
-        <tr class="border-b border-white/5 hover:bg-white/5 transition">
-          <td class="p-4 font-bold text-cyan-400">${d.data().userName}</td>
-          <td class="p-4 font-mono">${d.data().userMobile}</td>
-          <td class="p-4 text-xs italic">${d.data().postTitle}</td>
-          <td class="p-4 text-slate-500 text-[10px]">${new Date(d.data().time).toLocaleDateString()}</td>
-          <td class="p-4"><button onclick="delDoc('requests','${d.id}')" class="text-rose-500 text-xs">Clear</button></td>
-        </tr>
-      `).join('');
-    });
-
-    // COMMENTS MGMT
-    // Assumes comment docs look like: { postId, postTitle, userName, commentText, approved: false, time }
-    onSnapshot(query(collection(db, "comments"), orderBy("time", "desc")), s => {
-      const pending = s.docs.filter(d => !d.data().approved);
-      document.getElementById('pendingCount').textContent = pending.length ? `(${pending.length})` : '';
-
-      commentTableList.innerHTML = s.docs.map(d => {
-        const c = d.data();
-        const isApproved = !!c.approved;
-        return `
-        <tr class="border-b border-white/5 hover:bg-white/5 transition">
-          <td class="p-4">${isApproved ? '<span class="badge-approved">APPROVED</span>' : '<span class="badge-pending">PENDING</span>'}</td>
-          <td class="p-4 font-bold text-cyan-400">${c.userName || ''}</td>
-          <td class="p-4 text-xs italic">${c.postTitle || c.postId || ''}</td>
-          <td class="p-4 text-xs max-w-xs truncate">${c.commentText || ''}</td>
-          <td class="p-4 text-slate-500 text-[10px]">${c.time ? new Date(c.time).toLocaleDateString() : ''}</td>
-          <td class="p-4 flex gap-3">
-            ${!isApproved ? `<button onclick="approveComment('${d.id}')" class="text-emerald-500 text-xs font-bold">Approve</button>` : ''}
-            <button onclick="delDoc('comments','${d.id}')" class="text-rose-500 text-xs">Delete</button>
-          </td>
-        </tr>
-      `}).join('');
-    });
-
-    window.approveComment = async (id) => {
-      await updateDoc(doc(db, "comments", id), { approved: true });
+      `).join('') : `<div class="h-screen flex items-center justify-center text-slate-500">Empty List</div>`;
     };
 
-    // USER MGMT
-    onSnapshot(collection(db, "users"), s => {
-      userTableList.innerHTML = s.docs.map(d => `
-        <tr class="border-b border-white/5"><td class="p-4 font-mono">${d.id}</td><td class="p-4 text-slate-500">${d.data().registeredAt ? new Date(d.data().registeredAt).toLocaleDateString() : 'Existing'}</td></tr>
-      `).join('');
-    });
-
-    window.sendPush = async () => {
-      await addDoc(collection(db, "notifications"), { title: nTitle.value, msg: nMsg.value, time: Date.now() });
-      nTitle.value=''; nMsg.value=''; alert("Sent!");
+    // REQUEST SYSTEM
+    window.openRequest = (title) => {
+        activeReqPost = title;
+        reqPostName.innerText = title;
+        requestModal.style.display = 'flex';
+    };
+    window.closeRequest = () => requestModal.style.display = 'none';
+    window.submitRequest = async () => {
+        const name = userName.value;
+        if(!name) return;
+        await addDoc(collection(db, "requests"), { userName: name, userMobile: userId, postTitle: activeReqPost, time: Date.now() });
+        alert("Request Sent!");
+        userName.value = "";
+        closeRequest();
     };
 
-    window.delDoc = async (c, id) => { if(confirm("Confirm removal?")) await deleteDoc(doc(db, c, id)); };
+    // ACTIONS
+    window.toggleAction = async (id, field) => {
+      const isPresent = userData[field]?.includes(id);
+      await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
+    };
+
+    const closeAll = () => {
+      sidebar.classList.remove("open");
+      notiPane.classList.remove("open");
+      overlay.style.display = "none";
+    };
+
+    const loadApp = () => {
+      onSnapshot(doc(db, "users", userId), s => { 
+        userData = s.data() || {liked:[], saved:[]}; 
+        render(); 
+      });
+      onSnapshot(collection(db, "reels"), s => { 
+        allReels = s.docs.map(d => ({id:d.id, ...d.data()})); 
+        render(); 
+      });
+      onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
+        notiDot.style.display = s.empty ? "none" : "block";
+        notiList.innerHTML = s.docs.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${d.data().title}</p><p class="text-xs opacity-60">${d.data().msg}</p></div>`).join('');
+      });
+    };
+
+    // MENU SWITCHING LOGIC (THE FIX)
+    const switchMode = (mode, btnId) => {
+        currentMode = mode;
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(btnId).classList.add('active');
+        closeAll();
+        container.scrollTop = 0; // Reset scroll to top of new list
+        render();
+    };
+
+    navHome.onclick = () => switchMode("home", "navHome");
+    navLiked.onclick = () => switchMode("liked", "navLiked");
+    navSaved.onclick = () => switchMode("saved", "navSaved");
+
+    overlay.onclick = closeAll;
+    menuToggle.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
+    notiToggle.onclick = () => { notiPane.classList.add("open"); overlay.style.display = "block"; notiDot.style.display = "none"; };
+    navLogout.onclick = () => { localStorage.clear(); location.reload(); };
+
+    loginBtn.onclick = async () => {
+      if(!mobileInput.value) return;
+      userId = mobileInput.value;
+      await setDoc(doc(db, "users", userId), {liked:[], saved:[], registeredAt: Date.now()}, {merge:true});
+      localStorage.setItem("userId", userId);
+      login.style.display = "none";
+      loadApp();
+    };
+
+    if(userId) { login.style.display = "none"; loadApp(); }
   </script>
 </body>
 </html>
