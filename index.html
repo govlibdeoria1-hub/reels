@@ -1,224 +1,451 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Current Swipe | Smooth Flow</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root { --primary: #6366f1; --secondary: #06b6d4; --glass-border: rgba(255, 255, 255, 0.15); }
-    body { margin: 0; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; color: white; -webkit-font-smoothing: antialiased; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Reels</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; background: #000; color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+  }
 
-    #login { position: fixed; inset: 0; z-index: 10000; background: radial-gradient(circle at top right, #1e1b4b, #000); display: flex; justify-content: center; align-items: center; }
-    .login-card { width: 90%; max-width: 380px; padding: 45px 30px; background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 40px; text-align: center; }
+  /* ---------- LOGIN ---------- */
+  #login {
+    position: fixed; inset: 0; z-index: 10000; background: #000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ig-logo {
+    font-family: 'Brush Script MT', cursive, -apple-system;
+    font-size: 52px; font-weight: 400; margin-bottom: 40px; letter-spacing: 0.5px;
+  }
+  .login-card { width: 100%; max-width: 350px; padding: 0 32px; }
+  .login-card input {
+    width: 100%; padding: 13px 14px; margin-bottom: 10px; background: #121212;
+    border: 1px solid #262626; border-radius: 8px; color: #fff; font-size: 14px; outline: none;
+  }
+  .login-card input::placeholder { color: #8e8e8e; }
+  .login-card input:focus { border-color: #363636; }
+  #loginBtn {
+    width: 100%; padding: 12px; margin-top: 8px; background: #0095f6; border: none;
+    border-radius: 8px; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  #loginBtn:active { background: #1877c9; }
+  .login-sub { text-align: center; color: #8e8e8e; font-size: 13px; margin-top: 18px; }
 
-    /* SMOOTH SWIPE CONFIG */
-    #container { 
-        height: 100vh; 
-        overflow-y: scroll; 
-        scroll-snap-type: y mandatory; 
-        scroll-behavior: smooth;
-        scrollbar-width: none; 
-        -ms-overflow-style: none;
-        overscroll-behavior-y: contain; /* Prevents bounce issues */
-    }
-    #container::-webkit-scrollbar { display: none; }
-    
-    .reel { 
-        height: 100vh; 
-        width: 100%; 
-        position: relative; 
-        scroll-snap-align: start; 
-        scroll-snap-stop: always; 
-        will-change: transform; /* Boosts performance */
-    }
-    .reel img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-    .vignette { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.9) 100%); pointer-events: none; }
+  /* ---------- FEED CONTAINER ---------- */
+  #container {
+    height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory;
+    scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none;
+    overscroll-behavior-y: contain;
+  }
+  #container::-webkit-scrollbar { display: none; }
 
-    /* UI ELEMENTS */
-    .nav-trigger, .noti-trigger { position: fixed; top: 25px; z-index: 999; width: 48px; height: 48px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; }
-    .nav-trigger { left: 25px; }
-    .noti-trigger { right: 25px; }
-    .noti-dot { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; background: #f43f5e; border-radius: 50%; display: none; }
+  .reel {
+    height: 100vh; height: 100dvh; width: 100%; position: relative;
+    scroll-snap-align: start; scroll-snap-stop: always; will-change: transform;
+    background: #000; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .reel img {
+    width: 100%; height: 100%; object-fit: cover; pointer-events: none;
+    user-select: none;
+  }
+  .scrim-top {
+    position: absolute; top: 0; left: 0; right: 0; height: 140px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent); pointer-events: none;
+  }
+  .scrim-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 260px;
+    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent); pointer-events: none;
+  }
 
-    #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 997; display: none; }
-    .sidebar, .noti-pane { position: fixed; top: 0; height: 100%; background: #0a0a0a; z-index: 998; transition: 0.3s ease; border: 1px solid var(--glass-border); }
-    .sidebar { left: -320px; width: 300px; padding: 100px 24px; }
-    .sidebar.open { left: 0; }
-    .noti-pane { right: -350px; width: 320px; padding: 100px 20px; }
-    .noti-pane.open { right: 0; }
+  /* double tap heart burst */
+  .burst-heart {
+    position: absolute; top: 50%; left: 50%; font-size: 100px; color: #fff;
+    transform: translate(-50%, -50%) scale(0); pointer-events: none; z-index: 60;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .burst-heart.animate { animation: heartBurst 0.75s ease forwards; }
+  @keyframes heartBurst {
+    0% { transform: translate(-50%,-50%) scale(0); opacity: 1; }
+    30% { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+    45% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%,-50%) scale(1); opacity: 0; }
+  }
 
-    /* ACTIONS (Z-INDEX FIX) */
-    .actions { position: absolute; right: 15px; bottom: 100px; display: flex; flex-direction: column; gap: 15px; z-index: 50; }
-    .action-circle { width: 52px; height: 52px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); cursor: pointer; font-size: 22px; transition: transform 0.1s; }
-    .action-circle:active { transform: scale(0.9); }
-    .action-circle.liked { color: #f43f5e; border-color: #f43f5e; }
-    .action-circle.saved { color: #f59e0b; border-color: #f59e0b; }
-    .btn-req { background: #06b6d4; color: white; border: none; }
+  /* ---------- TOP HEADER ---------- */
+  .top-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top));
+    pointer-events: none;
+  }
+  .top-header .title { font-size: 20px; font-weight: 700; pointer-events: auto; }
+  .top-header .icons { display: flex; gap: 20px; pointer-events: auto; }
+  .top-header .icons i { font-size: 20px; cursor: pointer; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
+  .noti-dot {
+    position: absolute; top: -3px; right: -4px; width: 9px; height: 9px;
+    background: #ff3040; border-radius: 50%; display: none; border: 1.5px solid #000;
+  }
+  .icon-wrap { position: relative; }
 
-    .nav-item { display: flex; align-items: center; gap: 15px; padding: 16px; border-radius: 18px; color: #64748b; cursor: pointer; margin-bottom: 8px; font-weight: 600; }
-    .nav-item.active { background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--glass-border); }
+  /* ---------- CAPTION BLOCK (bottom-left) ---------- */
+  .caption-block {
+    position: absolute; left: 12px; right: 84px; bottom: 22px;
+    padding-bottom: env(safe-area-inset-bottom); z-index: 50;
+  }
+  .cap-user { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .cap-avatar {
+    width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;
+    border: 1.5px solid #000;
+  }
+  .cap-username { font-weight: 600; font-size: 14px; }
+  .follow-chip {
+    font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.7);
+    border-radius: 6px; padding: 3px 9px; margin-left: 4px;
+  }
+  .cap-text { font-size: 14px; line-height: 1.35; opacity: 0.95; margin-bottom: 10px; word-break: break-word; }
+  .audio-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; opacity: 0.92; }
+  .vinyl {
+    width: 15px; height: 15px; border-radius: 50%; background: #222; border: 2px solid #555;
+    display: flex; align-items: center; justify-content: center; animation: spin 3s linear infinite; flex-shrink: 0;
+  }
+  .vinyl::after { content: ''; width: 4px; height: 4px; border-radius: 50%; background: #999; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    #requestModal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; }
-  </style>
+  /* ---------- RIGHT ACTION RAIL ---------- */
+  .actions {
+    position: absolute; right: 8px; bottom: 90px; display: flex; flex-direction: column;
+    align-items: center; gap: 22px; z-index: 55; padding-bottom: env(safe-area-inset-bottom);
+  }
+  .action-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+  .action-icon {
+    width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+    font-size: 27px; color: #fff; transition: transform 0.12s ease; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
+  }
+  .action-icon:active { transform: scale(0.85); }
+  .action-icon.liked { color: #ff3040; }
+  .action-icon.saved { color: #ffd60a; }
+  .action-label { font-size: 11px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
+  .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8e8e8e; gap: 12px; }
+  .empty-state i { font-size: 40px; opacity: 0.5; }
+
+  /* ---------- BOTTOM NAV ---------- */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+    display: flex; justify-content: space-around; align-items: center;
+    padding: 10px 0; padding-bottom: max(10px, env(safe-area-inset-bottom));
+    background: rgba(0,0,0,0.35); backdrop-filter: blur(6px);
+    border-top: 0.5px solid rgba(255,255,255,0.08);
+  }
+  .bn-item { display: flex; align-items: center; justify-content: center; width: 44px; height: 32px; color: #fff; font-size: 24px; cursor: pointer; opacity: 0.65; }
+  .bn-item.active { opacity: 1; }
+  .bn-item.active i { font-weight: 900; }
+
+  /* ---------- SLIDE-UP SHARE SHEET (request modal) ---------- */
+  #requestModal {
+    position: fixed; inset: 0; z-index: 2000; display: none;
+  }
+  .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; background: #1a1a1a;
+    border-radius: 20px 20px 0 0; padding: 20px 20px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform 0.28s cubic-bezier(.25,.8,.25,1);
+  }
+  #requestModal.open .sheet { transform: translateY(0); }
+  .sheet-handle { width: 36px; height: 4px; background: #444; border-radius: 3px; margin: 0 auto 18px; }
+  .sheet h2 { font-size: 16px; font-weight: 700; margin: 0 0 2px; }
+  .sheet .sheet-sub { color: #8e8e8e; font-size: 12px; margin-bottom: 18px; }
+  .sheet input {
+    width: 100%; padding: 13px 14px; margin-bottom: 14px; background: #262626;
+    border: 1px solid #363636; border-radius: 10px; color: #fff; font-size: 14px; outline: none;
+  }
+  .sheet-actions { display: flex; gap: 10px; }
+  .sheet-actions button { flex: 1; padding: 13px; border-radius: 10px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; }
+  .btn-cancel { background: #262626; color: #fff; }
+  .btn-submit { background: #0095f6; color: #fff; }
+
+  /* ---------- SIDE PANELS ---------- */
+  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 997; display: none; }
+  .panel {
+    position: fixed; top: 0; height: 100%; width: 300px; background: #000; z-index: 998;
+    transition: transform 0.28s cubic-bezier(.25,.8,.25,1); border-left: 0.5px solid #262626;
+    padding: max(20px, env(safe-area-inset-top)) 0 20px;
+  }
+  .sidebar { right: -300px; }
+  .sidebar.open { transform: translateX(-300px); }
+  .noti-pane { right: -320px; width: 320px; border-left: 0.5px solid #262626; }
+  .noti-pane.open { transform: translateX(-320px); }
+
+  .panel-head { padding: 4px 20px 18px; font-size: 18px; font-weight: 700; border-bottom: 0.5px solid #262626; margin-bottom: 8px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 16px; padding: 15px 20px; color: #fff;
+    cursor: pointer; font-size: 15px; font-weight: 500;
+  }
+  .nav-item i { width: 22px; text-align: center; font-size: 19px; color: #ccc; }
+  .nav-item.active { font-weight: 700; }
+  .nav-item.active i { color: #fff; }
+  .nav-item.logout { color: #ed4956; margin-top: 20px; border-top: 0.5px solid #262626; padding-top: 20px; }
+  .nav-item.logout i { color: #ed4956; }
+
+  .noti-list { padding: 6px 16px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; max-height: calc(100% - 70px); }
+  .noti-card { display: flex; gap: 12px; padding: 10px 4px; align-items: flex-start; }
+  .noti-icon {
+    width: 38px; height: 38px; border-radius: 50%; background: #262626; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0; color: #0095f6; font-size: 15px;
+  }
+  .noti-title { font-size: 13.5px; font-weight: 600; }
+  .noti-msg { font-size: 12.5px; color: #a8a8a8; margin-top: 2px; }
+  .noti-empty { text-align: center; color: #8e8e8e; font-size: 13px; padding: 40px 0; }
+</style>
 </head>
 <body>
 
-  <div id="login">
-    <div class="login-card">
-      <h1 class="text-3xl font-black mb-6 italic italic">Current<span class="text-cyan-400">Swipe</span></h1>
-      <input id="mobileInput" type="tel" placeholder="Mobile Number" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white outline-none">
-      <button id="loginBtn" class="w-full p-4 bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-2xl font-bold uppercase">Enter App</button>
+<!-- LOGIN -->
+<div id="login">
+  <div class="ig-logo">Reels</div>
+  <div class="login-card">
+    <input id="mobileInput" type="tel" placeholder="Mobile Number">
+    <button id="loginBtn">Log in</button>
+    <div class="login-sub">Enter your number to continue</div>
+  </div>
+</div>
+
+<!-- SHARE / REQUEST SHEET -->
+<div id="requestModal">
+  <div class="sheet-backdrop" onclick="closeRequest()"></div>
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Send Request</h2>
+    <p class="sheet-sub" id="reqPostName"></p>
+    <input id="userName" placeholder="Full Name">
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeRequest()">Cancel</button>
+      <button class="btn-submit" onclick="submitRequest()">Send</button>
     </div>
   </div>
+</div>
 
-  <div id="requestModal">
-    <div class="bg-[#111] p-8 border border-white/10 rounded-[35px] w-[90%] max-w-[350px]">
-      <h2 class="text-xl font-bold mb-1">Send Request</h2>
-      <p id="reqPostName" class="text-cyan-400 text-[10px] mb-6 uppercase font-bold tracking-widest"></p>
-      <input id="userName" placeholder="Full Name" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white outline-none">
-      <div class="flex gap-2">
-        <button onclick="closeRequest()" class="flex-1 p-4 bg-white/5 rounded-2xl text-sm">Back</button>
-        <button onclick="submitRequest()" class="flex-1 p-4 bg-cyan-500 rounded-2xl text-sm font-bold">Submit</button>
-      </div>
+<!-- TOP HEADER -->
+<div class="top-header">
+  <div class="title">Reels</div>
+  <div class="icons">
+    <div class="icon-wrap" id="notiToggle">
+      <i class="fa-regular fa-heart"></i>
+      <div class="noti-dot" id="notiDot"></div>
     </div>
+    <i class="fa-solid fa-bars" id="menuToggle"></i>
   </div>
+</div>
 
-  <div class="nav-trigger" id="menuToggle"><i class="fa-solid fa-bars-staggered"></i></div>
-  <div class="noti-trigger" id="notiToggle"><i class="fa-solid fa-bell"></i><div class="noti-dot" id="notiDot"></div></div>
-  <div id="overlay"></div>
+<div id="overlay"></div>
 
-  <div id="sidebar" class="sidebar">
-    <div class="nav-item active" id="navHome"><i class="fa-solid fa-bolt"></i> Home Feed</div>
-    <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart"></i> Liked Reels</div>
-    <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark"></i> Saved Items</div>
-    <div class="nav-item text-rose-500 mt-20" id="navLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
-  </div>
+<!-- MENU PANEL -->
+<div id="sidebar" class="panel sidebar">
+  <div class="panel-head">Menu</div>
+  <div class="nav-item active" id="navHome"><i class="fa-solid fa-house"></i> Home Feed</div>
+  <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart"></i> Liked Reels</div>
+  <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark"></i> Saved Items</div>
+  <div class="nav-item logout" id="navLogout"><i class="fa-solid fa-right-from-bracket"></i> Log out</div>
+</div>
 
-  <div id="notiPane" class="noti-pane">
-    <h2 class="text-xl font-bold mb-6">Recent Alerts</h2>
-    <div id="notiList" class="space-y-4"></div>
-  </div>
+<!-- NOTIFICATIONS PANEL -->
+<div id="notiPane" class="panel noti-pane">
+  <div class="panel-head">Notifications</div>
+  <div class="noti-list" id="notiList"></div>
+</div>
 
-  <div id="container"></div>
+<!-- REEL FEED -->
+<div id="container"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="bn-item"><i class="fa-solid fa-house"></i></div>
+  <div class="bn-item"><i class="fa-solid fa-magnifying-glass"></i></div>
+  <div class="bn-item active"><i class="fa-solid fa-clapperboard"></i></div>
+  <div class="bn-item"><i class="fa-regular fa-bookmark" id="bnSaved"></i></div>
+  <div class="bn-item"><i class="fa-regular fa-circle-user"></i></div>
+</div>
 
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", 
-        authDomain: "reels-f0d24.firebaseapp.com", 
-        projectId: "reels-f0d24" 
-    };
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
+    authDomain: "reels-f0d24.firebaseapp.com",
+    projectId: "reels-f0d24"
+  };
 
-    let userId = localStorage.getItem("userId");
-    let allReels = [], userData = { liked: [], saved: [] }, activeReqPost = "";
-    let currentMode = "home";
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const render = () => {
-      let data = allReels;
-      if(currentMode === "liked") data = allReels.filter(r => userData.liked?.includes(r.id));
-      if(currentMode === "saved") data = allReels.filter(r => userData.saved?.includes(r.id));
+  let userId = localStorage.getItem("userId");
+  let allReels = [], userData = { liked: [], saved: [] }, activeReqPost = "";
+  let currentMode = "home";
+  let lastTap = {};
 
-      container.innerHTML = data.length ? data.map(item => `
-        <div class="reel">
-          <img src="${item.image}">
-          <div class="vignette"></div>
-          <div class="absolute bottom-12 left-6 right-20 pointer-events-none">
-            <p class="text-white font-bold text-lg drop-shadow-md">${item.title}</p>
+  const initials = (str) => (str || "U").trim().charAt(0).toUpperCase();
+
+  const render = () => {
+    let data = allReels;
+    if (currentMode === "liked") data = allReels.filter(r => userData.liked?.includes(r.id));
+    if (currentMode === "saved") data = allReels.filter(r => userData.saved?.includes(r.id));
+
+    container.innerHTML = data.length ? data.map(item => `
+      <div class="reel" data-id="${item.id}" ondblclick="quickLike('${item.id}', this)">
+        <img src="${item.image}" draggable="false">
+        <div class="scrim-top"></div>
+        <div class="scrim-bottom"></div>
+        <i class="fa-solid fa-heart burst-heart" id="burst-${item.id}"></i>
+
+        <div class="caption-block">
+          <div class="cap-user">
+            <div class="cap-avatar">${initials(item.title)}</div>
+            <span class="cap-username">${(item.title || 'reel').toLowerCase().replace(/\s+/g,'_')}</span>
+            <span class="follow-chip">Follow</span>
           </div>
-          <div class="actions">
-            <div class="action-circle btn-req" onclick="openRequest('${item.title}')">
-              <i class="fa-solid fa-paper-plane"></i>
-            </div>
-            <div class="action-circle ${userData.liked?.includes(item.id) ? 'liked' : ''}" onclick="toggleAction('${item.id}', 'liked')">
-              <i class="fa-solid fa-heart"></i>
-            </div>
-            <div class="action-circle ${userData.saved?.includes(item.id) ? 'saved' : ''}" onclick="toggleAction('${item.id}', 'saved')">
-              <i class="fa-solid fa-bookmark"></i>
-            </div>
+          <div class="cap-text">${item.title || ''}</div>
+          <div class="audio-row">
+            <div class="vinyl"></div>
+            <span>Original audio</span>
           </div>
         </div>
-      `).join('') : `<div class="h-screen flex items-center justify-center text-slate-500">Empty List</div>`;
-    };
 
-    // REQUEST SYSTEM
-    window.openRequest = (title) => {
-        activeReqPost = title;
-        reqPostName.innerText = title;
-        requestModal.style.display = 'flex';
-    };
-    window.closeRequest = () => requestModal.style.display = 'none';
-    window.submitRequest = async () => {
-        const name = userName.value;
-        if(!name) return;
-        await addDoc(collection(db, "requests"), { userName: name, userMobile: userId, postTitle: activeReqPost, time: Date.now() });
-        alert("Request Sent!");
-        userName.value = "";
-        closeRequest();
-    };
+        <div class="actions">
+          <div class="action-item" onclick="toggleAction('${item.id}', 'liked')">
+            <div class="action-icon ${userData.liked?.includes(item.id) ? 'liked' : ''}">
+              <i class="fa-${userData.liked?.includes(item.id) ? 'solid' : 'regular'} fa-heart"></i>
+            </div>
+          </div>
+          <div class="action-item" onclick="openRequest('${(item.title||'').replace(/'/g,"\\'")}')">
+            <div class="action-icon"><i class="fa-regular fa-paper-plane"></i></div>
+            <span class="action-label">Send</span>
+          </div>
+          <div class="action-item" onclick="toggleAction('${item.id}', 'saved')">
+            <div class="action-icon ${userData.saved?.includes(item.id) ? 'saved' : ''}">
+              <i class="fa-${userData.saved?.includes(item.id) ? 'solid' : 'regular'} fa-bookmark"></i>
+            </div>
+          </div>
+          <div class="action-item">
+            <div class="cap-avatar" style="width:30px;height:30px;font-size:12px;border-radius:8px;"><i class="fa-solid fa-ellipsis" style="font-size:14px;"></i></div>
+          </div>
+        </div>
+      </div>
+    `).join('') : `<div class="reel"><div class="empty-state"><i class="fa-regular fa-face-frown"></i><span>Nothing here yet</span></div></div>`;
+  };
 
-    // ACTIONS
-    window.toggleAction = async (id, field) => {
-      const isPresent = userData[field]?.includes(id);
-      await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
-    };
+  // double-tap-to-like (works alongside dblclick for touch)
+  container.addEventListener('touchend', (e) => {
+    const reel = e.target.closest('.reel');
+    if (!reel) return;
+    const id = reel.dataset.id;
+    const now = Date.now();
+    if (lastTap[id] && now - lastTap[id] < 300) {
+      quickLike(id, reel);
+    }
+    lastTap[id] = now;
+  });
 
-    const closeAll = () => {
-      sidebar.classList.remove("open");
-      notiPane.classList.remove("open");
-      overlay.style.display = "none";
-    };
+  window.quickLike = async (id, reelEl) => {
+    if (!userData.liked?.includes(id)) {
+      await updateDoc(doc(db, "users", userId), { liked: arrayUnion(id) });
+    }
+    const burst = reelEl.querySelector('.burst-heart');
+    if (burst) {
+      burst.classList.remove('animate');
+      void burst.offsetWidth;
+      burst.classList.add('animate');
+    }
+  };
 
-    const loadApp = () => {
-      onSnapshot(doc(db, "users", userId), s => { 
-        userData = s.data() || {liked:[], saved:[]}; 
-        render(); 
-      });
-      onSnapshot(collection(db, "reels"), s => { 
-        allReels = s.docs.map(d => ({id:d.id, ...d.data()})); 
-        render(); 
-      });
-      onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
-        notiDot.style.display = s.empty ? "none" : "block";
-        notiList.innerHTML = s.docs.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${d.data().title}</p><p class="text-xs opacity-60">${d.data().msg}</p></div>`).join('');
-      });
-    };
+  window.openRequest = (title) => {
+    activeReqPost = title;
+    reqPostName.innerText = title;
+    requestModal.style.display = 'block';
+    requestAnimFrame();
+  };
+  function requestAnimFrame(){ requestAnimationFrame(()=> requestModal.classList.add('open')); }
+  window.closeRequest = () => {
+    requestModal.classList.remove('open');
+    setTimeout(()=> requestModal.style.display = 'none', 280);
+  };
+  window.submitRequest = async () => {
+    const name = userName.value;
+    if (!name) return;
+    await addDoc(collection(db, "requests"), { userName: name, userMobile: userId, postTitle: activeReqPost, time: Date.now() });
+    userName.value = "";
+    closeRequest();
+  };
 
-    // MENU SWITCHING LOGIC (THE FIX)
-    const switchMode = (mode, btnId) => {
-        currentMode = mode;
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        document.getElementById(btnId).classList.add('active');
-        closeAll();
-        container.scrollTop = 0; // Reset scroll to top of new list
-        render();
-    };
+  window.toggleAction = async (id, field) => {
+    const isPresent = userData[field]?.includes(id);
+    await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
+  };
 
-    navHome.onclick = () => switchMode("home", "navHome");
-    navLiked.onclick = () => switchMode("liked", "navLiked");
-    navSaved.onclick = () => switchMode("saved", "navSaved");
+  const closeAll = () => {
+    sidebar.classList.remove("open");
+    notiPane.classList.remove("open");
+    overlay.style.display = "none";
+  };
 
-    overlay.onclick = closeAll;
-    menuToggle.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
-    notiToggle.onclick = () => { notiPane.classList.add("open"); overlay.style.display = "block"; notiDot.style.display = "none"; };
-    navLogout.onclick = () => { localStorage.clear(); location.reload(); };
+  const loadApp = () => {
+    onSnapshot(doc(db, "users", userId), s => {
+      userData = s.data() || { liked: [], saved: [] };
+      render();
+    });
+    onSnapshot(collection(db, "reels"), s => {
+      allReels = s.docs.map(d => ({ id: d.id, ...d.data() }));
+      render();
+    });
+    onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
+      notiDot.style.display = s.empty ? "none" : "block";
+      notiList.innerHTML = s.empty
+        ? `<div class="noti-empty">No notifications yet</div>`
+        : s.docs.map(d => `
+          <div class="noti-card">
+            <div class="noti-icon"><i class="fa-solid fa-bolt"></i></div>
+            <div>
+              <div class="noti-title">${d.data().title || ''}</div>
+              <div class="noti-msg">${d.data().msg || ''}</div>
+            </div>
+          </div>`).join('');
+    });
+  };
 
-    loginBtn.onclick = async () => {
-      if(!mobileInput.value) return;
-      userId = mobileInput.value;
-      await setDoc(doc(db, "users", userId), {liked:[], saved:[], registeredAt: Date.now()}, {merge:true});
-      localStorage.setItem("userId", userId);
-      login.style.display = "none";
-      loadApp();
-    };
+  const switchMode = (mode, btnId) => {
+    currentMode = mode;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(btnId).classList.add('active');
+    closeAll();
+    container.scrollTop = 0;
+    render();
+  };
 
-    if(userId) { login.style.display = "none"; loadApp(); }
-  </script>
+  navHome.onclick = () => switchMode("home", "navHome");
+  navLiked.onclick = () => switchMode("liked", "navLiked");
+  navSaved.onclick = () => switchMode("saved", "navSaved");
+
+  overlay.onclick = closeAll;
+  menuToggle.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
+  notiToggle.onclick = () => { notiPane.classList.add("open"); overlay.style.display = "block"; notiDot.style.display = "none"; };
+  navLogout.onclick = () => { localStorage.clear(); location.reload(); };
+
+  loginBtn.onclick = async () => {
+    if (!mobileInput.value) return;
+    userId = mobileInput.value;
+    await setDoc(doc(db, "users", userId), { liked: [], saved: [], registeredAt: Date.now() }, { merge: true });
+    localStorage.setItem("userId", userId);
+    login.style.display = "none";
+    loadApp();
+  };
+
+  if (userId) { login.style.display = "none"; loadApp(); }
+</script>
 </body>
 </html>
