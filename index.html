@@ -1,616 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>NewsWire</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    margin: 0; padding: 0; height: 100%; background: #000; color: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    overflow: hidden;
-  }
-
-  /* ---------- LOGIN ---------- */
-  #login {
-    position: fixed; inset: 0; z-index: 10000; background: #000;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-  }
-  .ig-logo {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 34px; font-weight: 800; margin-bottom: 40px; letter-spacing: 0.3px;
-  }
-  .login-card { width: 100%; max-width: 350px; padding: 0 32px; }
-  .login-card input {
-    width: 100%; padding: 13px 14px; margin-bottom: 10px; background: #121212;
-    border: 1px solid #262626; border-radius: 8px; color: #fff; font-size: 14px; outline: none;
-  }
-  .login-card input::placeholder { color: #8e8e8e; }
-  .login-card input:focus { border-color: #363636; }
-  #loginBtn {
-    width: 100%; padding: 12px; margin-top: 8px; background: #0095f6; border: none;
-    border-radius: 8px; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
-  }
-  #loginBtn:active { background: #1877c9; }
-  .login-sub { text-align: center; color: #8e8e8e; font-size: 13px; margin-top: 18px; }
-
-  /* ---------- OFFLINE SCREEN ---------- */
-  #offlineScreen {
-    position: fixed; inset: 0; z-index: 20000; background: #000;
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 0 36px;
-  }
-  .signal-wrap {
-    position: relative; width: 120px; height: 120px; display: flex;
-    align-items: center; justify-content: center; margin-bottom: 30px;
-  }
-  .signal-ring {
-    position: absolute; border: 1.5px solid #0095f6; border-radius: 50%;
-    width: 60px; height: 60px; opacity: 0; animation: pingRing 2.4s ease-out infinite;
-  }
-  .signal-ring.ring2 { animation-delay: 0.6s; }
-  .signal-ring.ring3 { animation-delay: 1.2s; }
-  @keyframes pingRing {
-    0% { transform: scale(0.55); opacity: 0.75; }
-    100% { transform: scale(2.1); opacity: 0; }
-  }
-  .wifi-icon-box {
-    position: relative; width: 56px; height: 56px; border-radius: 50%;
-    background: #121212; border: 1.5px solid #262626; display: flex;
-    align-items: center; justify-content: center; z-index: 2;
-  }
-  .wifi-icon-box i {
-    font-size: 22px; color: #ed4956; animation: iconPulse 1.8s ease-in-out infinite;
-  }
-  @keyframes iconPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.55; transform: scale(0.92); }
-  }
-  #offlineScreen h2 { font-size: 18px; font-weight: 700; margin: 0 0 8px; }
-  #offlineScreen p { font-size: 13.5px; color: #a8a8a8; line-height: 1.5; margin: 0 0 26px; max-width: 280px; }
-  #retryBtn {
-    padding: 11px 30px; background: #0095f6; border: none; border-radius: 8px;
-    color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform 0.12s ease;
-  }
-  #retryBtn:active { transform: scale(0.96); }
-  #retryBtn.shake { animation: shakeBtn 0.4s ease; }
-  @keyframes shakeBtn {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-6px); }
-    75% { transform: translateX(6px); }
-  }
-  .offline-dots { display: flex; gap: 5px; margin-top: 20px; }
-  .offline-dots span {
-    width: 5px; height: 5px; border-radius: 50%; background: #444; animation: dotFade 1.4s ease-in-out infinite;
-  }
-  .offline-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .offline-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes dotFade {
-    0%, 100% { opacity: 0.25; } 50% { opacity: 1; }
-  }
-
-  /* ---------- FEED CONTAINER ---------- */
-  #container {
-    height: 100vh; height: 100dvh; overflow-y: scroll; scroll-snap-type: y mandatory;
-    scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none;
-    overscroll-behavior-y: contain;
-  }
-  #container::-webkit-scrollbar { display: none; }
-
-  .reel {
-    height: 100vh; height: 100dvh; width: 100%; position: relative;
-    scroll-snap-align: start; scroll-snap-stop: always; will-change: transform;
-    background: #000; display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-  }
-  .reel img {
-    width: 100%; height: 100%; object-fit: cover; pointer-events: none;
-    user-select: none;
-  }
-  .scrim-top {
-    position: absolute; top: 0; left: 0; right: 0; height: 140px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent); pointer-events: none;
-  }
-  .scrim-bottom {
-    position: absolute; bottom: 0; left: 0; right: 0; height: 260px;
-    background: linear-gradient(to top, rgba(0,0,0,0.75), transparent); pointer-events: none;
-  }
-
-  /* double tap heart burst */
-  .burst-heart {
-    position: absolute; top: 50%; left: 50%; font-size: 100px; color: #fff;
-    transform: translate(-50%, -50%) scale(0); pointer-events: none; z-index: 60;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
-  }
-  .burst-heart.animate { animation: heartBurst 0.75s ease forwards; }
-  @keyframes heartBurst {
-    0% { transform: translate(-50%,-50%) scale(0); opacity: 1; }
-    30% { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
-    45% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-    100% { transform: translate(-50%,-50%) scale(1); opacity: 0; }
-  }
-
-  /* ---------- TOP HEADER ---------- */
-  .top-header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 500;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top));
-    pointer-events: none;
-  }
-  .top-header .title { font-size: 20px; font-weight: 700; pointer-events: auto; }
-  .top-header .icons { display: flex; gap: 20px; pointer-events: auto; }
-  .top-header .icons i { font-size: 20px; cursor: pointer; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5)); }
-  .noti-dot {
-    position: absolute; top: -3px; right: -4px; width: 9px; height: 9px;
-    background: #ff3040; border-radius: 50%; display: none; border: 1.5px solid #000;
-  }
-  .icon-wrap { position: relative; }
-
-  /* ---------- CAPTION BLOCK (bottom-left) ---------- */
-  .caption-block {
-    position: absolute; left: 12px; right: 84px; bottom: 22px;
-    padding-bottom: env(safe-area-inset-bottom); z-index: 50;
-  }
-  .cap-user { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .cap-avatar {
-    width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;
-    border: 1.5px solid #000;
-  }
-  .cap-username { font-weight: 600; font-size: 14px; }
-  .follow-chip {
-    font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.7);
-    border-radius: 6px; padding: 3px 9px; margin-left: 4px;
-  }
-  .cap-text { font-size: 14px; line-height: 1.35; opacity: 0.95; margin-bottom: 10px; word-break: break-word; }
-  .audio-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; opacity: 0.92; }
-  .vinyl {
-    width: 15px; height: 15px; border-radius: 50%; background: #222; border: 2px solid #555;
-    display: flex; align-items: center; justify-content: center; animation: spin 3s linear infinite; flex-shrink: 0;
-  }
-  .vinyl::after { content: ''; width: 4px; height: 4px; border-radius: 50%; background: #999; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-  /* ---------- RIGHT ACTION RAIL ---------- */
-  .actions {
-    position: absolute; right: 8px; bottom: 90px; display: flex; flex-direction: column;
-    align-items: center; gap: 22px; z-index: 55; padding-bottom: env(safe-area-inset-bottom);
-  }
-  .action-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-  .action-icon {
-    width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
-    font-size: 27px; color: #fff; transition: transform 0.12s ease; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.5));
-  }
-  .action-icon:active { transform: scale(0.85); }
-  .action-icon.liked { color: #ff3040; }
-  .action-icon.saved { color: #ffd60a; }
-  .action-label { font-size: 11px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
-  .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8e8e8e; gap: 12px; }
-  .empty-state i { font-size: 40px; opacity: 0.5; }
-
-  /* ---------- BOTTOM NAV ---------- */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-    display: flex; justify-content: space-around; align-items: center;
-    padding: 10px 0; padding-bottom: max(10px, env(safe-area-inset-bottom));
-    background: rgba(0,0,0,0.35); backdrop-filter: blur(6px);
-    border-top: 0.5px solid rgba(255,255,255,0.08);
-  }
-  .bn-item { display: flex; align-items: center; justify-content: center; width: 44px; height: 32px; color: #fff; font-size: 24px; cursor: pointer; opacity: 0.65; }
-  .bn-item.active { opacity: 1; }
-  .bn-item.active i { font-weight: 900; }
-
-  /* ---------- SLIDE-UP COMMENTS SHEET ---------- */
-  #requestModal {
-    position: fixed; inset: 0; z-index: 2000; display: none;
-  }
-  .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
-  .sheet {
-    position: absolute; left: 0; right: 0; bottom: 0; background: #1a1a1a;
-    border-radius: 20px 20px 0 0; padding: 14px 0 0; max-height: 72vh; display: flex; flex-direction: column;
-    transform: translateY(100%); transition: transform 0.28s cubic-bezier(.25,.8,.25,1);
-  }
-  #requestModal.open .sheet { transform: translateY(0); }
-  .sheet-handle { width: 36px; height: 4px; background: #444; border-radius: 3px; margin: 0 auto 14px; }
-  .sheet h2 { font-size: 14px; font-weight: 700; margin: 0; text-align: center; padding-bottom: 12px; border-bottom: 0.5px solid #262626; }
-
-  .comments-list { flex: 1; overflow-y: auto; padding: 6px 18px; min-height: 120px; }
-  .comment-row { display: flex; gap: 10px; padding: 12px 0; align-items: flex-start; }
-  .comment-avatar {
-    width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4);
-    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0;
-  }
-  .comment-body { font-size: 13.5px; line-height: 1.4; }
-  .comment-user { font-weight: 600; margin-right: 6px; }
-  .comment-empty { text-align: center; color: #8e8e8e; font-size: 13px; padding: 30px 0; }
-  .comment-pending-note { text-align: center; color: #8e8e8e; font-size: 11.5px; padding: 6px 18px 0; }
-
-  .comment-input-row {
-    display: flex; align-items: center; gap: 10px; padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
-    border-top: 0.5px solid #262626;
-  }
-  .comment-input-row .comment-avatar { width: 28px; height: 28px; font-size: 11px; }
-  .comment-input-row input {
-    flex: 1; padding: 10px 14px; background: #262626; border: 1px solid #363636;
-    border-radius: 20px; color: #fff; font-size: 13.5px; outline: none;
-  }
-  .comment-send { background: none; border: none; color: #0095f6; font-weight: 700; font-size: 13.5px; cursor: pointer; padding: 6px 4px; }
-  .comment-send:disabled { color: #0095f680; cursor: default; }
-
-  /* ---------- SIDE PANELS ---------- */
-  #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 997; display: none; }
-  .panel {
-    position: fixed; top: 0; height: 100%; width: 300px; background: #000; z-index: 998;
-    transition: transform 0.28s cubic-bezier(.25,.8,.25,1); border-left: 0.5px solid #262626;
-    padding: max(20px, env(safe-area-inset-top)) 0 20px;
-  }
-  .sidebar { right: -300px; }
-  .sidebar.open { transform: translateX(-300px); }
-  .noti-pane { right: -320px; width: 320px; border-left: 0.5px solid #262626; }
-  .noti-pane.open { transform: translateX(-320px); }
-
-  .panel-head { padding: 4px 20px 18px; font-size: 18px; font-weight: 700; border-bottom: 0.5px solid #262626; margin-bottom: 8px; }
-  .nav-item {
-    display: flex; align-items: center; gap: 16px; padding: 15px 20px; color: #fff;
-    cursor: pointer; font-size: 15px; font-weight: 500;
-  }
-  .nav-item i { width: 22px; text-align: center; font-size: 19px; color: #ccc; }
-  .nav-item.active { font-weight: 700; }
-  .nav-item.active i { color: #fff; }
-  .nav-item.logout { color: #ed4956; margin-top: 20px; border-top: 0.5px solid #262626; padding-top: 20px; }
-  .nav-item.logout i { color: #ed4956; }
-
-  .noti-list { padding: 6px 16px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; max-height: calc(100% - 70px); }
-  .noti-card { display: flex; gap: 12px; padding: 10px 4px; align-items: flex-start; }
-  .noti-icon {
-    width: 38px; height: 38px; border-radius: 50%; background: #262626; display: flex;
-    align-items: center; justify-content: center; flex-shrink: 0; color: #0095f6; font-size: 15px;
-  }
-  .noti-title { font-size: 13.5px; font-weight: 600; }
-  .noti-msg { font-size: 12.5px; color: #a8a8a8; margin-top: 2px; }
-  .noti-empty { text-align: center; color: #8e8e8e; font-size: 13px; padding: 40px 0; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Current Swipe | Admin Pro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background: #080808; color: white; font-family: 'Inter', sans-serif; }
+    .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
+    .tab-btn.active { color: #06b6d4; border-bottom: 2px solid #06b6d4; }
+    input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; outline: none; width: 100%; }
+    .badge-pending { background: rgba(251,146,60,0.15); color: #fb923c; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    .badge-approved { background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+  </style>
 </head>
-<body>
+<body class="p-6">
 
-<!-- OFFLINE / NO INTERNET SCREEN -->
-<div id="offlineScreen">
-  <div class="signal-wrap">
-    <div class="signal-ring ring1"></div>
-    <div class="signal-ring ring2"></div>
-    <div class="signal-ring ring3"></div>
-    <div class="wifi-icon-box"><i class="fa-solid fa-wifi"></i></div>
-  </div>
-  <h2>No Internet Connection</h2>
-  <p>Please connect to the internet to continue using NewsWire</p>
-  <button id="retryBtn">Try Again</button>
-  <div class="offline-dots"><span></span><span></span><span></span></div>
-</div>
-
-<!-- LOGIN -->
-<div id="login">
-  <div class="ig-logo">NewsWire</div>
-  <div class="login-card">
-    <input id="mobileInput" type="tel" placeholder="Mobile Number">
-    <button id="loginBtn">Log in</button>
-    <div class="login-sub" id="loginSub">Enter your number to continue</div>
-    <div id="loginError" style="color:#ed4956; font-size:12.5px; margin-top:10px; display:none; line-height:1.4;"></div>
-  </div>
-</div>
-
-<!-- COMMENTS SHEET -->
-<div id="requestModal">
-  <div class="sheet-backdrop" onclick="closeRequest()"></div>
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <h2>Comments</h2>
-    <div class="comments-list" id="commentsList"></div>
-    <p class="comment-pending-note" id="pendingNote"></p>
-    <div class="comment-input-row">
-      <div class="comment-avatar" id="inputAvatar">U</div>
-      <input id="userName" placeholder="Add a comment...">
-      <button class="comment-send" id="commentSendBtn" onclick="submitRequest()">Post</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOP HEADER -->
-<div class="top-header">
-  <div class="title">NewsWire</div>
-  <div class="icons">
-    <div class="icon-wrap" id="notiToggle">
-      <i class="fa-regular fa-heart"></i>
-      <div class="noti-dot" id="notiDot"></div>
-    </div>
-    <i class="fa-solid fa-bars" id="menuToggle"></i>
-  </div>
-</div>
-
-<div id="overlay"></div>
-
-<!-- MENU PANEL -->
-<div id="sidebar" class="panel sidebar">
-  <div class="panel-head">Menu</div>
-  <div class="nav-item active" id="navHome"><i class="fa-solid fa-house"></i> Home Feed</div>
-  <div class="nav-item" id="navLiked"><i class="fa-solid fa-heart"></i> Liked Reels</div>
-  <div class="nav-item" id="navSaved"><i class="fa-solid fa-bookmark"></i> Saved Items</div>
-  <div class="nav-item logout" id="navLogout"><i class="fa-solid fa-right-from-bracket"></i> Log out</div>
-</div>
-
-<!-- NOTIFICATIONS PANEL -->
-<div id="notiPane" class="panel noti-pane">
-  <div class="panel-head">Notifications</div>
-  <div class="noti-list" id="notiList"></div>
-</div>
-
-<!-- REEL FEED -->
-<div id="container"></div>
-
-<!-- BOTTOM NAV -->
-<div class="bottom-nav">
-  <div class="bn-item"><i class="fa-solid fa-house"></i></div>
-  <div class="bn-item"><i class="fa-solid fa-magnifying-glass"></i></div>
-  <div class="bn-item active"><i class="fa-solid fa-clapperboard"></i></div>
-  <div class="bn-item"><i class="fa-regular fa-bookmark" id="bnSaved"></i></div>
-  <div class="bn-item"><i class="fa-regular fa-circle-user"></i></div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, setDoc, updateDoc, arrayUnion, arrayRemove, query, orderBy, limit, addDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods",
-    authDomain: "reels-f0d24.firebaseapp.com",
-    projectId: "reels-f0d24"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // ---------- OFFLINE / CONNECTIVITY HANDLING ----------
-  const setOnlineStatus = () => {
-    if (navigator.onLine) {
-      offlineScreen.style.display = 'none';
-    } else {
-      offlineScreen.style.display = 'flex';
-    }
-  };
-  window.addEventListener('online', setOnlineStatus);
-  window.addEventListener('offline', setOnlineStatus);
-  setOnlineStatus();
-
-  retryBtn.onclick = () => {
-    setOnlineStatus();
-    if (navigator.onLine) {
-      location.reload();
-    } else {
-      retryBtn.classList.remove('shake');
-      void retryBtn.offsetWidth;
-      retryBtn.classList.add('shake');
-    }
-  };
-
-  let userId = localStorage.getItem("userId");
-  let allReels = [], userData = { liked: [], saved: [] }, activeReqPost = "";
-  let currentMode = "home";
-  let lastTap = {};
-
-  const initials = (str) => (str || "U").trim().charAt(0).toUpperCase();
-
-  const render = () => {
-    let data = allReels;
-    if (currentMode === "liked") data = allReels.filter(r => userData.liked?.includes(r.id));
-    if (currentMode === "saved") data = allReels.filter(r => userData.saved?.includes(r.id));
-
-    container.innerHTML = data.length ? data.map(item => `
-      <div class="reel" data-id="${item.id}" ondblclick="quickLike('${item.id}', this)">
-        <img src="${item.image}" draggable="false">
-        <div class="scrim-top"></div>
-        <div class="scrim-bottom"></div>
-        <i class="fa-solid fa-heart burst-heart" id="burst-${item.id}"></i>
-
-        <div class="caption-block">
-          <div class="cap-user">
-            <div class="cap-avatar">${initials(item.title)}</div>
-            <span class="cap-username">${(item.title || 'reel').toLowerCase().replace(/\s+/g,'_')}</span>
-            <span class="follow-chip">Follow</span>
-          </div>
-          <div class="cap-text">${item.title || ''}</div>
-          <div class="audio-row">
-            <div class="vinyl"></div>
-            <span>Original audio</span>
-          </div>
-        </div>
-
-        <div class="actions">
-          <div class="action-item" onclick="toggleAction('${item.id}', 'liked')">
-            <div class="action-icon ${userData.liked?.includes(item.id) ? 'liked' : ''}">
-              <i class="fa-${userData.liked?.includes(item.id) ? 'solid' : 'regular'} fa-heart"></i>
-            </div>
-          </div>
-          <div class="action-item" onclick="openRequest('${item.id}', '${(item.title||'').replace(/'/g,"\\'")}')">
-            <div class="action-icon"><i class="fa-regular fa-comment"></i></div>
-            <span class="action-label">Comment</span>
-          </div>
-          <div class="action-item" onclick="toggleAction('${item.id}', 'saved')">
-            <div class="action-icon ${userData.saved?.includes(item.id) ? 'saved' : ''}">
-              <i class="fa-${userData.saved?.includes(item.id) ? 'solid' : 'regular'} fa-bookmark"></i>
-            </div>
-          </div>
-          <div class="action-item">
-            <div class="cap-avatar" style="width:30px;height:30px;font-size:12px;border-radius:8px;"><i class="fa-solid fa-ellipsis" style="font-size:14px;"></i></div>
-          </div>
-        </div>
+  <div id="adminMain" style="display:none;" class="max-w-6xl mx-auto">
+    <header class="flex flex-wrap justify-between items-center mb-8 gap-4 bg-white/5 p-4 rounded-2xl">
+      <h1 class="text-xl font-black">CS<span class="text-cyan-400">ADMIN</span></h1>
+      <div class="flex gap-2">
+        <button onclick="switchTab('reels')" id="tReels" class="tab-btn active px-4 py-2 font-bold text-xs uppercase">Content</button>
+        <button onclick="switchTab('requests')" id="tRequests" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-orange-400">Requests</button>
+        <button onclick="switchTab('comments')" id="tComments" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-yellow-400">Comments <span id="pendingCount" class="ml-1"></span></button>
+        <button onclick="switchTab('users')" id="tUsers" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Users</button>
+        <button onclick="switchTab('notis')" id="tNotis" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Broadcast</button>
       </div>
-    `).join('') : `<div class="reel"><div class="empty-state"><i class="fa-regular fa-face-frown"></i><span>Nothing here yet</span></div></div>`;
-  };
+    </header>
 
-  // double-tap-to-like (works alongside dblclick for touch)
-  container.addEventListener('touchend', (e) => {
-    const reel = e.target.closest('.reel');
-    if (!reel) return;
-    const id = reel.dataset.id;
-    const now = Date.now();
-    if (lastTap[id] && now - lastTap[id] < 300) {
-      quickLike(id, reel);
-    }
-    lastTap[id] = now;
-  });
+    <div id="tabReels" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="glass p-6 h-fit">
+        <h3 class="font-bold mb-4">Add Reel</h3>
+        <input id="imgUrl" placeholder="Image URL" class="mb-3">
+        <input id="title" placeholder="Reel Title" class="mb-3">
+        <button onclick="addReel()" class="w-full bg-cyan-600 p-4 rounded-xl font-bold">Publish</button>
+      </div>
+      <div class="md:col-span-2 glass p-6">
+        <h3 class="font-bold mb-4">Live Feed</h3>
+        <div id="reelGrid" class="grid grid-cols-3 gap-4 h-[500px] overflow-y-auto"></div>
+      </div>
+    </div>
 
-  window.quickLike = async (id, reelEl) => {
-    if (!userData.liked?.includes(id)) {
-      await updateDoc(doc(db, "users", userId), { liked: arrayUnion(id) });
-    }
-    const burst = reelEl.querySelector('.burst-heart');
-    if (burst) {
-      burst.classList.remove('animate');
-      void burst.offsetWidth;
-      burst.classList.add('animate');
-    }
-  };
+    <div id="tabRequests" style="display:none;" class="glass p-8">
+      <h3 class="font-bold text-xl mb-6 text-orange-400">User Inquiries</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-white/5 text-slate-500">
+            <tr><th class="p-4">Name</th><th class="p-4">Mobile</th><th class="p-4">Post Requested</th><th class="p-4">Date</th><th class="p-4">Action</th></tr>
+          </thead>
+          <tbody id="reqTableList"></tbody>
+        </table>
+      </div>
+    </div>
 
-  let activePostId = "";
-  let commentsUnsub = null;
+    <div id="tabComments" style="display:none;" class="glass p-8">
+      <h3 class="font-bold text-xl mb-6 text-yellow-400">Comment Moderation</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="border-b border-white/5 text-slate-500">
+            <tr>
+              <th class="p-4">Status</th>
+              <th class="p-4">User</th>
+              <th class="p-4">Post</th>
+              <th class="p-4">Comment</th>
+              <th class="p-4">Date</th>
+              <th class="p-4">Action</th>
+            </tr>
+          </thead>
+          <tbody id="commentTableList"></tbody>
+        </table>
+      </div>
+    </div>
 
-  const escapeHtml = (str) => (str || "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    <div id="tabUsers" style="display:none;" class="glass p-8">
+      <h3 class="font-bold mb-6">User Database</h3>
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-white/5 text-slate-500">
+          <tr><th class="p-4">Mobile Number</th><th class="p-4">Join Date</th></tr>
+        </thead>
+        <tbody id="userTableList"></tbody>
+      </table>
+    </div>
 
-  window.openRequest = (postId, title) => {
-    activePostId = postId;
-    activeReqPost = title;
-    inputAvatar.innerText = initials(userId);
-    requestModal.style.display = 'block';
-    requestAnimFrame();
+    <div id="tabNotis" style="display:none;" class="max-w-lg mx-auto glass p-8">
+        <h3 class="font-bold mb-6">Send Alert</h3>
+        <input id="nTitle" placeholder="Title" class="mb-4">
+        <input id="nMsg" placeholder="Message..." class="mb-4">
+        <button onclick="sendPush()" class="w-full bg-pink-600 p-4 rounded-xl font-bold">Push Notification</button>
+    </div>
+  </div>
 
-    commentsList.innerHTML = `<div class="comment-empty">Loading comments...</div>`;
-    if (commentsUnsub) commentsUnsub();
-    commentsUnsub = onSnapshot(query(collection(db, "comments"), where("postId", "==", postId), where("approved", "==", true)), s => {
-      if (s.empty) {
-        commentsList.innerHTML = `<div class="comment-empty">No comments yet. Be the first to comment.</div>`;
-        return;
-      }
-      const rows = s.docs.map(d => d.data()).sort((a, b) => (a.time || 0) - (b.time || 0));
-      commentsList.innerHTML = rows.map(c => `
-        <div class="comment-row">
-          <div class="comment-avatar">${initials(c.userName)}</div>
-          <div class="comment-body"><span class="comment-user">${escapeHtml(c.userName)}</span>${escapeHtml(c.text)}</div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const pass = prompt("Password:");
+    if(pass === "1997") document.getElementById('adminMain').style.display = 'block'; else location.reload();
+
+    const firebaseConfig = { apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", authDomain: "reels-f0d24.firebaseapp.com", projectId: "reels-f0d24" };
+    const db = getFirestore(initializeApp(firebaseConfig));
+
+    window.switchTab = (tab) => {
+      ['Reels', 'Requests', 'Comments', 'Users', 'Notis'].forEach(t => {
+        document.getElementById('tab'+t).style.display = 'none';
+        document.getElementById('t'+t).classList.remove('active');
+      });
+      document.getElementById('tab'+tab.charAt(0).toUpperCase() + tab.slice(1)).style.display = 'block';
+      document.getElementById('t'+tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+    };
+
+    // CONTENT MGMT
+    window.addReel = async () => {
+      await addDoc(collection(db, "reels"), { image: imgUrl.value, title: title.value, time: Date.now() });
+      imgUrl.value=''; title.value='';
+    };
+
+    onSnapshot(query(collection(db, "reels"), orderBy("time", "desc")), s => {
+      reelGrid.innerHTML = s.docs.map(d => `
+        <div class="bg-white/5 p-2 rounded-xl text-center">
+          <img src="${d.data().image}" class="h-20 w-full object-cover rounded-lg mb-2">
+          <button onclick="delDoc('reels','${d.id}')" class="text-rose-500 text-[10px] font-bold">DELETE</button>
         </div>
       `).join('');
-      commentsList.scrollTop = commentsList.scrollHeight;
     });
-  };
-  function requestAnimFrame(){ requestAnimationFrame(()=> requestModal.classList.add('open')); }
-  window.closeRequest = () => {
-    requestModal.classList.remove('open');
-    setTimeout(()=> requestModal.style.display = 'none', 280);
-    if (commentsUnsub) { commentsUnsub(); commentsUnsub = null; }
-  };
-  window.submitRequest = async () => {
-    const text = userName.value.trim();
-    if (!text || !activePostId) return;
-    commentSendBtn.disabled = true;
-    await addDoc(collection(db, "comments"), {
-      postId: activePostId,
-      userName: userId,
-      text,
-      time: Date.now(),
-      approved: false
+
+    // REQUESTS MGMT
+    onSnapshot(query(collection(db, "requests"), orderBy("time", "desc")), s => {
+      reqTableList.innerHTML = s.docs.map(d => `
+        <tr class="border-b border-white/5 hover:bg-white/5 transition">
+          <td class="p-4 font-bold text-cyan-400">${d.data().userName}</td>
+          <td class="p-4 font-mono">${d.data().userMobile}</td>
+          <td class="p-4 text-xs italic">${d.data().postTitle}</td>
+          <td class="p-4 text-slate-500 text-[10px]">${new Date(d.data().time).toLocaleDateString()}</td>
+          <td class="p-4"><button onclick="delDoc('requests','${d.id}')" class="text-rose-500 text-xs">Clear</button></td>
+        </tr>
+      `).join('');
     });
-    userName.value = "";
-    commentSendBtn.disabled = false;
-    pendingNote.innerText = "Your comment is awaiting admin approval.";
-    setTimeout(() => { pendingNote.innerText = ""; }, 3500);
-  };
 
-  window.toggleAction = async (id, field) => {
-    const isPresent = userData[field]?.includes(id);
-    await updateDoc(doc(db, "users", userId), { [field]: isPresent ? arrayRemove(id) : arrayUnion(id) });
-  };
+    // COMMENTS MGMT
+    // Assumes comment docs look like: { postId, postTitle, userName, commentText, approved: false, time }
+    onSnapshot(query(collection(db, "comments"), orderBy("time", "desc")), s => {
+      const pending = s.docs.filter(d => !d.data().approved);
+      document.getElementById('pendingCount').textContent = pending.length ? `(${pending.length})` : '';
 
-  const closeAll = () => {
-    sidebar.classList.remove("open");
-    notiPane.classList.remove("open");
-    overlay.style.display = "none";
-  };
-
-  const loadApp = () => {
-    onSnapshot(doc(db, "users", userId), s => {
-      userData = s.data() || { liked: [], saved: [] };
-      render();
+      commentTableList.innerHTML = s.docs.map(d => {
+        const c = d.data();
+        const isApproved = !!c.approved;
+        return `
+        <tr class="border-b border-white/5 hover:bg-white/5 transition">
+          <td class="p-4">${isApproved ? '<span class="badge-approved">APPROVED</span>' : '<span class="badge-pending">PENDING</span>'}</td>
+          <td class="p-4 font-bold text-cyan-400">${c.userName || ''}</td>
+          <td class="p-4 text-xs italic">${c.postTitle || c.postId || ''}</td>
+          <td class="p-4 text-xs max-w-xs truncate">${c.commentText || ''}</td>
+          <td class="p-4 text-slate-500 text-[10px]">${c.time ? new Date(c.time).toLocaleDateString() : ''}</td>
+          <td class="p-4 flex gap-3">
+            ${!isApproved ? `<button onclick="approveComment('${d.id}')" class="text-emerald-500 text-xs font-bold">Approve</button>` : ''}
+            <button onclick="delDoc('comments','${d.id}')" class="text-rose-500 text-xs">Delete</button>
+          </td>
+        </tr>
+      `}).join('');
     });
-    onSnapshot(collection(db, "reels"), s => {
-      allReels = s.docs.map(d => ({ id: d.id, ...d.data() }));
-      render();
+
+    window.approveComment = async (id) => {
+      await updateDoc(doc(db, "comments", id), { approved: true });
+    };
+
+    // USER MGMT
+    onSnapshot(collection(db, "users"), s => {
+      userTableList.innerHTML = s.docs.map(d => `
+        <tr class="border-b border-white/5"><td class="p-4 font-mono">${d.id}</td><td class="p-4 text-slate-500">${d.data().registeredAt ? new Date(d.data().registeredAt).toLocaleDateString() : 'Existing'}</td></tr>
+      `).join('');
     });
-    onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
-      notiDot.style.display = s.empty ? "none" : "block";
-      notiList.innerHTML = s.empty
-        ? `<div class="noti-empty">No notifications yet</div>`
-        : s.docs.map(d => `
-          <div class="noti-card">
-            <div class="noti-icon"><i class="fa-solid fa-bolt"></i></div>
-            <div>
-              <div class="noti-title">${d.data().title || ''}</div>
-              <div class="noti-msg">${d.data().msg || ''}</div>
-            </div>
-          </div>`).join('');
-    });
-  };
 
-  const switchMode = (mode, btnId) => {
-    currentMode = mode;
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(btnId).classList.add('active');
-    closeAll();
-    container.scrollTop = 0;
-    render();
-  };
+    window.sendPush = async () => {
+      await addDoc(collection(db, "notifications"), { title: nTitle.value, msg: nMsg.value, time: Date.now() });
+      nTitle.value=''; nMsg.value=''; alert("Sent!");
+    };
 
-  navHome.onclick = () => switchMode("home", "navHome");
-  navLiked.onclick = () => switchMode("liked", "navLiked");
-  navSaved.onclick = () => switchMode("saved", "navSaved");
-
-  overlay.onclick = closeAll;
-  menuToggle.onclick = () => { sidebar.classList.add("open"); overlay.style.display = "block"; };
-  notiToggle.onclick = () => { notiPane.classList.add("open"); overlay.style.display = "block"; notiDot.style.display = "none"; };
-  navLogout.onclick = () => { localStorage.clear(); location.reload(); };
-
-  loginBtn.onclick = async () => {
-    const val = mobileInput.value.trim();
-    loginError.style.display = 'none';
-    if (!val) {
-      loginError.textContent = "Please enter your mobile number.";
-      loginError.style.display = 'block';
-      return;
-    }
-
-    loginBtn.disabled = true;
-    loginBtn.textContent = "Logging in...";
-
-    try {
-      userId = val;
-      await setDoc(doc(db, "users", userId), { liked: [], saved: [], registeredAt: Date.now() }, { merge: true });
-      localStorage.setItem("userId", userId);
-      login.style.display = "none";
-      loadApp();
-    } catch (err) {
-      console.error("Login failed:", err);
-      loginBtn.disabled = false;
-      loginBtn.textContent = "Log in";
-      if (err.code === 'permission-denied') {
-        loginError.textContent = "Login blocked by Firestore security rules. Open your Firebase Console → Firestore → Rules and allow writes to the 'users' collection.";
-      } else if (err.code === 'unavailable' || !navigator.onLine) {
-        loginError.textContent = "Can't reach the server. Please check your internet connection and try again.";
-      } else {
-        loginError.textContent = "Something went wrong: " + (err.message || err.code || "unknown error");
-      }
-      loginError.style.display = 'block';
-    }
-  };
-
-  if (userId) { login.style.display = "none"; loadApp(); }
-</script>
+    window.delDoc = async (c, id) => { if(confirm("Confirm removal?")) await deleteDoc(doc(db, c, id)); };
+  </script>
 </body>
 </html>
