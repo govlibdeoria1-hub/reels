@@ -3,69 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Current Swipe | Admin Pro</title>
+  <title>CurrentSwipe | Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    body { background: #080808; color: white; font-family: 'Inter', sans-serif; }
-    .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
-    .tab-btn.active { color: #06b6d4; border-bottom: 2px solid #06b6d4; }
-    input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 14px; border-radius: 12px; outline: none; width: 100%; }
-    .badge-pending { background: rgba(251,146,60,0.15); color: #fb923c; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
-    .badge-approved { background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    :root {
+      --primary: #6366f1;
+      --secondary: #06b6d4;
+      --accent: #f97316;
+      --danger: #f43f5e;
+      --gold: #f59e0b;
+      --success: #10b981;
+      --glass-border: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background: radial-gradient(circle at 15% 0%, #14123a 0%, #060608 45%), radial-gradient(circle at 100% 100%, #052c33 0%, transparent 45%), #060608; color: white; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+    .glass { background: rgba(255,255,255,0.025); border: 1px solid var(--glass-border); border-radius: 22px; backdrop-filter: blur(20px); }
+    input, textarea { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 13px 15px; border-radius: 13px; outline: none; width: 100%; font-family: inherit; font-size: 13.5px; transition: border-color .15s, background .15s; }
+    input:focus, textarea:focus { border-color: var(--secondary); background: rgba(255,255,255,0.07); }
+    textarea { resize: vertical; }
+    label.field-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.4); margin-bottom: 7px; display: block; }
+
+    /* PASSWORD GATE */
+    #gate { position: fixed; inset: 0; z-index: 5000; display: flex; align-items: center; justify-content: center; }
+    .gate-card { width: 90%; max-width: 380px; padding: 42px 32px; text-align: center; }
+    .gate-logo { width: 60px; height: 60px; margin: 0 auto 18px; border-radius: 18px; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 12px 30px -8px rgba(6,182,212,0.5); }
+    .gate-card input { text-align: center; letter-spacing: 0.3em; margin-bottom: 14px; }
+    .gate-card input.shake { animation: shake 0.4s; border-color: var(--danger) !important; }
+    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+    .gate-error { color: var(--danger); font-size: 12px; font-weight: 600; height: 16px; margin-bottom: 10px; }
+    .gate-btn { width: 100%; padding: 14px; border-radius: 13px; border: none; background: linear-gradient(135deg, var(--secondary), var(--primary)); color: white; font-weight: 800; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; }
+    .gate-btn:active { transform: scale(0.98); }
+
+    /* TAB BAR */
+    .tab-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+    .tab-row::-webkit-scrollbar { display: none; }
+    .tab-btn { display: flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 13px; font-size: 12.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.03); border: 1px solid transparent; cursor: pointer; white-space: nowrap; transition: all .15s; }
+    .tab-btn:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); }
+    .tab-btn.active { color: white; border-color: rgba(255,255,255,0.12); }
+    .tab-btn.active[data-accent="cyan"] { background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(6,182,212,0.08)); }
+    .tab-btn.active[data-accent="orange"] { background: linear-gradient(135deg, rgba(249,115,22,0.25), rgba(249,115,22,0.08)); }
+    .tab-btn.active[data-accent="gold"] { background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.08)); }
+    .tab-btn.active[data-accent="indigo"] { background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(99,102,241,0.08)); }
+    .tab-btn.active[data-accent="pink"] { background: linear-gradient(135deg, rgba(236,72,153,0.25), rgba(236,72,153,0.08)); }
+    .tab-count { background: rgba(245,158,11,0.9); color: #000; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 999px; }
+
+    /* SECTION HEADERS */
+    .section-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; margin-bottom: 18px; }
+    .section-title i { font-size: 14px; }
+
+    /* PUBLISH BUTTON */
+    .publish-btn { width: 100%; padding: 15px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--secondary), var(--primary)); color: white; font-weight: 800; font-size: 13.5px; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; }
+    .publish-btn:active { transform: scale(0.98); }
+
+    /* LIVE FEED GRID */
+    .reel-card { position: relative; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+    .reel-card .thumb { position: relative; height: 96px; }
+    .reel-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .reel-card .cat-tag { position: absolute; top: 6px; left: 6px; background: #2563eb; font-size: 8.5px; font-weight: 800; text-transform: uppercase; padding: 3px 7px; border-radius: 999px; }
+    .reel-card .info { padding: 8px 9px 10px; }
+    .reel-card .title-line { font-size: 11.5px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
+    .del-link { color: var(--danger); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; background: none; border: none; padding: 0; }
+
+    /* TABLE */
+    table.modern { width: 100%; text-align: left; font-size: 13px; border-collapse: separate; border-spacing: 0; }
+    table.modern thead th { padding: 12px 16px; color: rgba(255,255,255,0.4); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    table.modern tbody tr { transition: background .12s; }
+    table.modern tbody tr:hover { background: rgba(255,255,255,0.03); }
+    table.modern tbody td { padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+    .badge-pending { background: rgba(245,158,11,0.15); color: var(--gold); padding: 3px 11px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+    .badge-approved { background: rgba(16,185,129,0.15); color: var(--success); padding: 3px 11px; border-radius: 999px; font-size: 10px; font-weight: 800; }
+    .empty-row td { text-align: center; color: rgba(255,255,255,0.3); padding: 40px 16px; font-size: 13px; }
+
+    /* TOAST */
+    #toastHost { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 6000; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+    .toast { background: rgba(20,20,24,0.95); border: 1px solid var(--glass-border); backdrop-filter: blur(16px); padding: 12px 22px; border-radius: 999px; font-size: 13px; font-weight: 700; box-shadow: 0 10px 30px -8px rgba(0,0,0,0.6); animation: toastIn .25s ease, toastOut .25s ease 2s forwards; }
+    @keyframes toastIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+    @keyframes toastOut { to { opacity:0; transform: translateY(-6px);} }
   </style>
 </head>
-<body class="p-6">
+<body>
 
-  <div id="adminMain" style="display:none;" class="max-w-6xl mx-auto">
-    <header class="flex flex-wrap justify-between items-center mb-8 gap-4 bg-white/5 p-4 rounded-2xl">
-      <h1 class="text-xl font-black">CS<span class="text-cyan-400">ADMIN</span></h1>
-      <div class="flex gap-2">
-        <button onclick="switchTab('reels')" id="tReels" class="tab-btn active px-4 py-2 font-bold text-xs uppercase">Content</button>
-        <button onclick="switchTab('requests')" id="tRequests" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-orange-400">Requests</button>
-        <button onclick="switchTab('comments')" id="tComments" class="tab-btn px-4 py-2 font-bold text-xs uppercase text-yellow-400">Comments <span id="pendingCount" class="ml-1"></span></button>
-        <button onclick="switchTab('users')" id="tUsers" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Users</button>
-        <button onclick="switchTab('notis')" id="tNotis" class="tab-btn px-4 py-2 font-bold text-xs uppercase">Broadcast</button>
+  <div id="gate">
+    <div class="glass gate-card">
+      <div class="gate-logo"><i class="fa-solid fa-shield-halved"></i></div>
+      <h1 class="text-xl font-black mb-1">CurrentSwipe<span class="text-cyan-400">Admin</span></h1>
+      <p class="text-xs text-white/40 mb-7 font-medium">Restricted access — staff only</p>
+      <input id="gatePass" type="password" placeholder="• • • • •" maxlength="12">
+      <p class="gate-error" id="gateError"></p>
+      <button class="gate-btn" onclick="checkPass()">Unlock</button>
+    </div>
+  </div>
+
+  <div id="adminMain" style="display:none;" class="max-w-6xl mx-auto p-4 md:p-6">
+    <header class="glass p-4 md:p-5 mb-7">
+      <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+        <h1 class="text-lg font-black">CS<span class="text-cyan-400">ADMIN</span></h1>
+        <p class="text-[11px] text-white/35 font-semibold">CurrentSwipe Control Panel</p>
+      </div>
+      <div class="tab-row">
+        <button onclick="switchTab('reels')" id="tReels" data-accent="cyan" class="tab-btn active"><i class="fa-solid fa-photo-film"></i> Content</button>
+        <button onclick="switchTab('requests')" id="tRequests" data-accent="orange" class="tab-btn"><i class="fa-solid fa-inbox"></i> Requests</button>
+        <button onclick="switchTab('comments')" id="tComments" data-accent="gold" class="tab-btn"><i class="fa-solid fa-comments"></i> Comments <span id="pendingCount" class="tab-count" style="display:none;"></span></button>
+        <button onclick="switchTab('users')" id="tUsers" data-accent="indigo" class="tab-btn"><i class="fa-solid fa-users"></i> Users</button>
+        <button onclick="switchTab('notis')" id="tNotis" data-accent="pink" class="tab-btn"><i class="fa-solid fa-bullhorn"></i> Broadcast</button>
       </div>
     </header>
 
-    <div id="tabReels" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div id="tabReels" class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="glass p-6 h-fit">
-        <h3 class="font-bold mb-4">Add Reel</h3>
-        <input id="imgUrl" placeholder="Image URL" class="mb-3">
-        <input id="title" placeholder="Reel Title" class="mb-3">
-        <button onclick="addReel()" class="w-full bg-cyan-600 p-4 rounded-xl font-bold">Publish</button>
+        <div class="section-title"><i class="fa-solid fa-circle-plus text-cyan-400"></i> Add Reel</div>
+
+        <label class="field-label">Image URL</label>
+        <input id="imgUrl" placeholder="https://..." class="mb-4">
+
+        <label class="field-label">Reel Title</label>
+        <input id="title" placeholder="New Sustainable Library Hub..." class="mb-4">
+
+        <label class="field-label">Category</label>
+        <input id="category" placeholder="e.g. Campus Life" class="mb-4">
+
+        <label class="field-label">Short Description</label>
+        <textarea id="shortDesc" rows="2" placeholder="Teaser shown right on the feed card"></textarea>
+        <div class="mb-4"></div>
+
+        <label class="field-label">Read More — Full Story</label>
+        <textarea id="fullStory" rows="6" placeholder="The full write-up shown when the user taps 'Read Story' on the feed"></textarea>
+        <p class="text-[10.5px] text-white/30 mt-2 mb-5">This is the text that appears in the full article view when a user taps <b>Read Story</b> on this post.</p>
+
+        <button onclick="addReel()" class="publish-btn">Publish</button>
       </div>
+
       <div class="md:col-span-2 glass p-6">
-        <h3 class="font-bold mb-4">Live Feed</h3>
-        <div id="reelGrid" class="grid grid-cols-3 gap-4 h-[500px] overflow-y-auto"></div>
+        <div class="section-title"><i class="fa-solid fa-bolt text-cyan-400"></i> Live Feed</div>
+        <div id="reelGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 h-[560px] overflow-y-auto pr-1"></div>
       </div>
     </div>
 
-    <div id="tabRequests" style="display:none;" class="glass p-8">
-      <h3 class="font-bold text-xl mb-6 text-orange-400">User Inquiries</h3>
+    <div id="tabRequests" style="display:none;" class="glass p-6 md:p-8">
+      <div class="section-title"><i class="fa-solid fa-inbox text-orange-400"></i> User Inquiries</div>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="border-b border-white/5 text-slate-500">
-            <tr><th class="p-4">Name</th><th class="p-4">Mobile</th><th class="p-4">Post Requested</th><th class="p-4">Date</th><th class="p-4">Action</th></tr>
+        <table class="modern">
+          <thead>
+            <tr><th>Name</th><th>Mobile</th><th>Post Requested</th><th>Date</th><th>Action</th></tr>
           </thead>
           <tbody id="reqTableList"></tbody>
         </table>
       </div>
     </div>
 
-    <div id="tabComments" style="display:none;" class="glass p-8">
-      <h3 class="font-bold text-xl mb-6 text-yellow-400">Comment Moderation</h3>
+    <div id="tabComments" style="display:none;" class="glass p-6 md:p-8">
+      <div class="section-title"><i class="fa-solid fa-comments text-yellow-400"></i> Comment Moderation</div>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="border-b border-white/5 text-slate-500">
+        <table class="modern">
+          <thead>
             <tr>
-              <th class="p-4">Status</th>
-              <th class="p-4">User</th>
-              <th class="p-4">Post</th>
-              <th class="p-4">Comment</th>
-              <th class="p-4">Date</th>
-              <th class="p-4">Action</th>
+              <th>Status</th>
+              <th>User</th>
+              <th>Post</th>
+              <th>Comment</th>
+              <th>Date</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="commentTableList"></tbody>
@@ -73,31 +175,55 @@
       </div>
     </div>
 
-    <div id="tabUsers" style="display:none;" class="glass p-8">
-      <h3 class="font-bold mb-6">User Database</h3>
-      <table class="w-full text-left text-sm">
-        <thead class="border-b border-white/5 text-slate-500">
-          <tr><th class="p-4">Mobile Number</th><th class="p-4">Join Date</th></tr>
+    <div id="tabUsers" style="display:none;" class="glass p-6 md:p-8">
+      <div class="section-title"><i class="fa-solid fa-users text-indigo-400"></i> User Database</div>
+      <table class="modern">
+        <thead>
+          <tr><th>Mobile Number</th><th>Join Date</th></tr>
         </thead>
         <tbody id="userTableList"></tbody>
       </table>
     </div>
 
-    <div id="tabNotis" style="display:none;" class="max-w-lg mx-auto glass p-8">
-        <h3 class="font-bold mb-6">Send Alert</h3>
+    <div id="tabNotis" style="display:none;" class="max-w-lg mx-auto glass p-6 md:p-8">
+        <div class="section-title"><i class="fa-solid fa-bullhorn text-pink-400"></i> Send Alert</div>
+        <label class="field-label">Title</label>
         <input id="nTitle" placeholder="Title" class="mb-4">
-        <input id="nMsg" placeholder="Message..." class="mb-4">
-        <button onclick="sendPush()" class="w-full bg-pink-600 p-4 rounded-xl font-bold">Push Notification</button>
+        <label class="field-label">Message</label>
+        <input id="nMsg" placeholder="Message..." class="mb-5">
+        <button onclick="sendPush()" class="publish-btn" style="background: linear-gradient(135deg, #ec4899, #6366f1);">Push Notification</button>
     </div>
   </div>
+
+  <div id="toastHost"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     // (orderBy/query still used by Reels & Requests tabs above — untouched)
 
-    const pass = prompt("Password:");
-    if(pass === "1997") document.getElementById('adminMain').style.display = 'block'; else location.reload();
+    const escapeHtml = (str) => (str || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+    window.showToast = (msg) => {
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.innerText = msg;
+      toastHost.appendChild(t);
+      setTimeout(() => t.remove(), 2300);
+    };
+
+    window.checkPass = () => {
+      if (gatePass.value === "1997") {
+        document.getElementById('gate').style.display = 'none';
+        document.getElementById('adminMain').style.display = 'block';
+      } else {
+        gatePass.classList.add('shake');
+        gateError.innerText = "Incorrect password";
+        setTimeout(() => gatePass.classList.remove('shake'), 400);
+      }
+    };
+    gatePass.addEventListener('keydown', e => { if (e.key === 'Enter') checkPass(); });
+    gatePass.focus();
 
     const firebaseConfig = { apiKey: "AIzaSyDD9hS0jRiKDUP6-tv6J1xghs-bwi5Cods", authDomain: "reels-f0d24.firebaseapp.com", projectId: "reels-f0d24" };
     const db = getFirestore(initializeApp(firebaseConfig));
@@ -113,30 +239,47 @@
 
     // CONTENT MGMT
     window.addReel = async () => {
-      await addDoc(collection(db, "reels"), { image: imgUrl.value, title: title.value, time: Date.now() });
-      imgUrl.value=''; title.value='';
+      if (!imgUrl.value.trim() || !title.value.trim()) { showToast("Image URL and Title are required"); return; }
+      await addDoc(collection(db, "reels"), {
+        image: imgUrl.value.trim(),
+        title: title.value.trim(),
+        category: category.value.trim() || 'Feed',
+        description: shortDesc.value.trim(),
+        content: fullStory.value.trim(),
+        time: Date.now()
+      });
+      imgUrl.value = ''; title.value = ''; category.value = ''; shortDesc.value = ''; fullStory.value = '';
+      showToast("Reel published");
     };
 
     onSnapshot(query(collection(db, "reels"), orderBy("time", "desc")), s => {
-      reelGrid.innerHTML = s.docs.map(d => `
-        <div class="bg-white/5 p-2 rounded-xl text-center">
-          <img src="${d.data().image}" class="h-20 w-full object-cover rounded-lg mb-2">
-          <button onclick="delDoc('reels','${d.id}')" class="text-rose-500 text-[10px] font-bold">DELETE</button>
+      reelGrid.innerHTML = s.docs.length ? s.docs.map(d => {
+        const r = d.data();
+        return `
+        <div class="reel-card">
+          <div class="thumb">
+            <img src="${r.image}">
+            <span class="cat-tag">${escapeHtml(r.category || 'Feed')}</span>
+          </div>
+          <div class="info">
+            <p class="title-line">${escapeHtml(r.title)}</p>
+            <button onclick="delDoc('reels','${d.id}')" class="del-link">Delete</button>
+          </div>
         </div>
-      `).join('');
+      `}).join('') : `<div class="col-span-full text-center text-white/30 text-sm py-16">No reels published yet</div>`;
     });
 
     // REQUESTS MGMT
     onSnapshot(query(collection(db, "requests"), orderBy("time", "desc")), s => {
-      reqTableList.innerHTML = s.docs.map(d => `
-        <tr class="border-b border-white/5 hover:bg-white/5 transition">
-          <td class="p-4 font-bold text-cyan-400">${d.data().userName}</td>
-          <td class="p-4 font-mono">${d.data().userMobile}</td>
-          <td class="p-4 text-xs italic">${d.data().postTitle}</td>
-          <td class="p-4 text-slate-500 text-[10px]">${new Date(d.data().time).toLocaleDateString()}</td>
-          <td class="p-4"><button onclick="delDoc('requests','${d.id}')" class="text-rose-500 text-xs">Clear</button></td>
+      reqTableList.innerHTML = s.docs.length ? s.docs.map(d => `
+        <tr>
+          <td class="font-bold text-cyan-400">${escapeHtml(d.data().userName)}</td>
+          <td class="font-mono">${escapeHtml(d.data().userMobile)}</td>
+          <td class="text-xs italic">${escapeHtml(d.data().postTitle)}</td>
+          <td class="text-slate-500 text-[10px]">${new Date(d.data().time).toLocaleDateString()}</td>
+          <td><button onclick="delDoc('requests','${d.id}')" class="text-rose-500 text-xs font-bold">Clear</button></td>
         </tr>
-      `).join('');
+      `).join('') : `<tr class="empty-row"><td colspan="5">No inquiries yet</td></tr>`;
     });
 
     // COMMENTS MGMT
@@ -157,10 +300,11 @@
       });
 
       const pending = docs.filter(d => !d.data().approved);
-      document.getElementById('pendingCount').textContent = pending.length ? `(${pending.length})` : '';
+      pendingCount.style.display = pending.length ? 'inline-block' : 'none';
+      pendingCount.textContent = pending.length || '';
 
       if (docs.length === 0) {
-        commentTableList.innerHTML = `<tr><td colspan="6" class="p-4 text-slate-500 text-xs">No comments found in the "comments" collection yet.</td></tr>`;
+        commentTableList.innerHTML = `<tr class="empty-row"><td colspan="6">No comments found in the "comments" collection yet.</td></tr>`;
         return;
       }
 
@@ -170,15 +314,17 @@
         const t = getTime(c);
         const dateStr = t ? new Date(t).toLocaleDateString() : '—';
         return `
-        <tr class="border-b border-white/5 hover:bg-white/5 transition">
-          <td class="p-4">${isApproved ? '<span class="badge-approved">APPROVED</span>' : '<span class="badge-pending">PENDING</span>'}</td>
-          <td class="p-4 font-bold text-cyan-400">${getUser(c)}</td>
-          <td class="p-4 text-xs italic">${getPost(c)}</td>
-          <td class="p-4 text-xs max-w-xs truncate">${getText(c)}</td>
-          <td class="p-4 text-slate-500 text-[10px]">${dateStr}</td>
-          <td class="p-4 flex gap-3">
-            ${!isApproved ? `<button onclick="approveComment('${d.id}')" class="text-emerald-500 text-xs font-bold">Approve</button>` : ''}
-            <button onclick="delDoc('comments','${d.id}')" class="text-rose-500 text-xs">Delete</button>
+        <tr>
+          <td>${isApproved ? '<span class="badge-approved">APPROVED</span>' : '<span class="badge-pending">PENDING</span>'}</td>
+          <td class="font-bold text-cyan-400">${escapeHtml(getUser(c))}</td>
+          <td class="text-xs italic">${escapeHtml(getPost(c))}</td>
+          <td class="text-xs max-w-xs truncate">${escapeHtml(getText(c))}</td>
+          <td class="text-slate-500 text-[10px]">${dateStr}</td>
+          <td>
+            <div class="flex gap-3">
+              ${!isApproved ? `<button onclick="approveComment('${d.id}')" class="text-emerald-500 text-xs font-bold">Approve</button>` : ''}
+              <button onclick="delDoc('comments','${d.id}')" class="text-rose-500 text-xs font-bold">Delete</button>
+            </div>
           </td>
         </tr>
       `}).join('');
@@ -186,21 +332,24 @@
 
     window.approveComment = async (id) => {
       await updateDoc(doc(db, "comments", id), { approved: true });
+      showToast("Comment approved");
     };
 
     // USER MGMT
     onSnapshot(collection(db, "users"), s => {
-      userTableList.innerHTML = s.docs.map(d => `
-        <tr class="border-b border-white/5"><td class="p-4 font-mono">${d.id}</td><td class="p-4 text-slate-500">${d.data().registeredAt ? new Date(d.data().registeredAt).toLocaleDateString() : 'Existing'}</td></tr>
-      `).join('');
+      userTableList.innerHTML = s.docs.length ? s.docs.map(d => `
+        <tr><td class="font-mono">${escapeHtml(d.id)}</td><td class="text-slate-500">${d.data().registeredAt ? new Date(d.data().registeredAt).toLocaleDateString() : 'Existing'}</td></tr>
+      `).join('') : `<tr class="empty-row"><td colspan="2">No users yet</td></tr>`;
     });
 
     window.sendPush = async () => {
-      await addDoc(collection(db, "notifications"), { title: nTitle.value, msg: nMsg.value, time: Date.now() });
-      nTitle.value=''; nMsg.value=''; alert("Sent!");
+      if (!nTitle.value.trim()) { showToast("Add a title first"); return; }
+      await addDoc(collection(db, "notifications"), { title: nTitle.value.trim(), msg: nMsg.value.trim(), time: Date.now() });
+      nTitle.value=''; nMsg.value='';
+      showToast("Alert sent");
     };
 
-    window.delDoc = async (c, id) => { if(confirm("Confirm removal?")) await deleteDoc(doc(db, c, id)); };
+    window.delDoc = async (c, id) => { if(confirm("Confirm removal?")) { await deleteDoc(doc(db, c, id)); showToast("Removed"); } };
   </script>
 </body>
 </html>
