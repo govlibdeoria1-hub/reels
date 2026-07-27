@@ -60,9 +60,7 @@
     .noti-dot { position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; display: none; box-shadow: 0 0 0 2px #000; }
 
     #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 997; display: none; }
-    .sidebar, .noti-pane { position: fixed; top: 0; height: 100%; background: #0a0a0c; z-index: 998; transition: 0.32s cubic-bezier(.25,1,.4,1); border: 1px solid var(--glass-border); }
-    .sidebar { left: -320px; width: 300px; padding: 100px 22px 24px; }
-    .sidebar.open { left: 0; }
+    .noti-pane { position: fixed; top: 0; height: 100%; background: #0a0a0c; z-index: 998; transition: 0.32s cubic-bezier(.25,1,.4,1); border: 1px solid var(--glass-border); }
     .noti-pane { right: -350px; width: 320px; padding: 100px 20px 24px; }
     .noti-pane.open { right: 0; }
     .nav-item { display: flex; align-items: center; gap: 15px; padding: 15px 16px; border-radius: 16px; color: #7c8494; cursor: pointer; margin-bottom: 6px; font-weight: 600; font-size: 14.5px; transition: background .15s, color .15s; }
@@ -108,12 +106,30 @@
     .grid-empty { grid-column: 1 / -1; padding: 90px 24px; text-align: center; color: rgba(255,255,255,0.35); }
     .grid-empty i { font-size: 30px; margin-bottom: 12px; display: block; }
 
-    /* PROFILE CARD (sidebar) */
-    .profile-card { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
-    .profile-avatar { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 23px; color: rgba(255,255,255,0.75); flex-shrink: 0; }
-    .profile-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.4); font-weight: 700; margin-bottom: 3px; }
-    .profile-number { font-size: 16.5px; font-weight: 800; }
-    .sidebar-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0 20px; }
+    /* PROFILE PAGE */
+    .profile-page { position: fixed; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #000; z-index: 10; display: none; padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .profile-topbar { display: flex; align-items: center; justify-content: space-between; padding: max(20px, env(safe-area-inset-top)) 20px 14px; }
+    .profile-topbar .brand-name-static { font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+    .profile-topbar .search-btn-static { position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; cursor: pointer; }
+    .profile-hero { margin: 6px 20px 20px; padding: 34px 24px 26px; border-radius: 28px; background: linear-gradient(135deg, var(--primary), var(--secondary)); text-align: center; box-shadow: 0 20px 50px -18px rgba(99,102,241,0.55); }
+    .profile-avatar-box { width: 76px; height: 76px; border-radius: 22px; background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 18px; }
+    .profile-hero-title { font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+    .profile-hero-sub { font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; color: rgba(255,255,255,0.85); margin: 0 0 20px; text-transform: uppercase; }
+    .profile-divider { height: 1px; background: rgba(255,255,255,0.25); margin-bottom: 20px; }
+    .profile-stats { display: flex; justify-content: center; gap: 56px; }
+    .profile-stat span { display: block; font-size: 26px; font-weight: 800; }
+    .profile-stat small { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.04em; }
+    .activity-card { margin: 0 20px 18px; background: #0b0b0e; border: 1px solid var(--glass-border); border-radius: 22px; overflow: hidden; }
+    .activity-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 18px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.55); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .activity-header .view-all { color: var(--secondary); text-transform: none; letter-spacing: 0; font-size: 13px; cursor: pointer; font-weight: 700; }
+    .activity-item { display: flex; gap: 12px; padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 14px; color: rgba(255,255,255,0.7); flex-shrink: 0; }
+    .activity-title { font-size: 13.5px; font-weight: 700; }
+    .activity-meta { font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .activity-empty { padding: 30px 18px; text-align: center; color: rgba(255,255,255,0.35); font-size: 13px; }
+    .signout-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: calc(100% - 40px); margin: 4px 20px 0; padding: 16px; background: var(--danger); color: white; font-weight: 800; font-size: 15px; border: none; border-radius: 16px; cursor: pointer; }
+    .signout-btn:active { transform: scale(0.98); }
 
     #requestModal, #commentModal { position: fixed; inset: 0; z-index: 2200; background: rgba(0,0,0,0.72); backdrop-filter: blur(12px); display: none; }
     #requestModal { justify-content: center; align-items: center; }
@@ -211,16 +227,32 @@
 
   <div id="overlay"></div>
 
-  <div id="sidebar" class="sidebar">
-    <div class="profile-card">
-      <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
-      <div>
-        <p class="profile-label">Mobile Number</p>
-        <p class="profile-number" id="profileNumber">—</p>
+  <div id="profileContainer" class="profile-page">
+    <div class="profile-topbar">
+      <span class="brand-name-static">CurrentSwipe</span>
+      <div class="search-btn-static" onclick="openNotis()"><i class="fa-solid fa-bell"></i><div class="noti-dot" id="notiDot"></div></div>
+    </div>
+
+    <div class="profile-hero">
+      <div class="profile-avatar-box"><i class="fa-solid fa-user"></i></div>
+      <h2 class="profile-hero-title">Your Profile</h2>
+      <p class="profile-hero-sub" id="profileMobile">—</p>
+      <div class="profile-divider"></div>
+      <div class="profile-stats">
+        <div class="profile-stat"><span id="statSaved">0</span><small>Saved Items</small></div>
+        <div class="profile-stat"><span id="statLiked">0</span><small>Liked Reels</small></div>
       </div>
     </div>
-    <div class="sidebar-divider"></div>
-    <div class="nav-item text-rose-500" id="navLogout"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Logout</div>
+
+    <div class="activity-card">
+      <div class="activity-header">
+        <span>Recent Alerts</span>
+        <span class="view-all" onclick="openNotis()">View All <i class="fa-solid fa-arrow-right"></i></span>
+      </div>
+      <div id="activityList"></div>
+    </div>
+
+    <button class="signout-btn" id="navLogout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
   </div>
 
   <div id="notiPane" class="noti-pane">
@@ -263,6 +295,7 @@
     let userId = localStorage.getItem("userId");
     let allReels = [], userData = { liked: [], saved: [] }, activeReqPost = "";
     let allComments = [], activeCommentReelId = null;
+    let latestNotis = [];
     let currentMode = "home";
 
     const escapeHtml = (str) => (str || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -286,16 +319,20 @@
     const approvedCommentCount = (reelId) => allComments.filter(c => c.postId === reelId && c.approved).length;
 
     const render = () => {
-      if (currentMode !== "home") {
-        container.style.display = "none";
+      container.style.display = "none";
+      gridContainer.style.display = "none";
+      profileContainer.style.display = "none";
+
+      if (currentMode === "home") {
+        container.style.display = "block";
+        renderFeed(allReels);
+      } else if (currentMode === "profile") {
+        profileContainer.style.display = "block";
+        renderProfilePage();
+      } else {
         gridContainer.style.display = "block";
         renderGrid();
-        if (activeCommentReelId) renderComments();
-        return;
       }
-      container.style.display = "block";
-      gridContainer.style.display = "none";
-      renderFeed(allReels);
       if (activeCommentReelId) renderComments();
     };
 
@@ -365,6 +402,23 @@
           <div class="grid-badge"><i class="fa-solid ${currentMode === 'liked' ? 'fa-heart' : 'fa-bookmark'}" style="color:${currentMode === 'liked' ? '#f43f5e' : '#f59e0b'}"></i></div>
         </div>
       `).join('') : `<div class="grid-empty"><i class="fa-regular ${currentMode === 'liked' ? 'fa-heart' : 'fa-bookmark'}"></i>${currentMode === "liked" ? "No liked reels yet" : "No saved items yet"}</div>`;
+    };
+
+    const renderProfilePage = () => {
+      profileMobile.innerText = userId || '—';
+      statSaved.innerText = (userData.saved || []).length;
+      statLiked.innerText = (userData.liked || []).length;
+
+      const items = latestNotis.slice(0, 3);
+      activityList.innerHTML = items.length ? items.map(n => `
+        <div class="activity-item">
+          <div class="activity-icon"><i class="fa-solid fa-bell"></i></div>
+          <div class="flex-1 min-w-0">
+            <p class="activity-title">${escapeHtml(n.title)}</p>
+            <p class="activity-meta">${escapeHtml(n.msg || '')}</p>
+          </div>
+        </div>
+      `).join('') : `<div class="activity-empty">No recent alerts</div>`;
     };
 
     // REQUEST SYSTEM
@@ -468,7 +522,6 @@
     };
 
     const closeAll = () => {
-      sidebar.classList.remove("open");
       notiPane.classList.remove("open");
       overlay.style.display = "none";
     };
@@ -490,7 +543,9 @@
       });
       onSnapshot(query(collection(db, "notifications"), orderBy("time", "desc"), limit(5)), s => {
         document.querySelectorAll('#notiDot').forEach(d => d.style.display = s.empty ? "none" : "block");
-        notiList.innerHTML = s.docs.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${escapeHtml(d.data().title)}</p><p class="text-xs opacity-60">${escapeHtml(d.data().msg)}</p></div>`).join('');
+        latestNotis = s.docs.map(d => ({id:d.id, ...d.data()}));
+        notiList.innerHTML = latestNotis.map(d => `<div class="bg-white/5 p-4 rounded-xl border border-white/5"><p class="text-sm font-bold text-cyan-400">${escapeHtml(d.title)}</p><p class="text-xs opacity-60">${escapeHtml(d.msg)}</p></div>`).join('');
+        if (currentMode === "profile") renderProfilePage();
       });
     };
 
@@ -508,7 +563,7 @@
     bnHome.onclick = () => switchMode("home", "bnHome");
     bnExplore.onclick = () => switchMode("liked", "bnExplore");
     bnSaved.onclick = () => switchMode("saved", "bnSaved");
-    bnProfile.onclick = () => { profileNumber.innerText = userId || '—'; sidebar.classList.add("open"); overlay.style.display = "block"; };
+    bnProfile.onclick = () => switchMode("profile", "bnProfile");
 
     overlay.onclick = closeAll;
     navLogout.onclick = () => { localStorage.clear(); location.reload(); };
